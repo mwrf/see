@@ -3,7 +3,7 @@
  */
  
 var http = require('http');
-var mappings = require('./mappings.json');
+var mappings;
 
 // utility function to walk over objects
 function iterate(object, fn, scope) {
@@ -18,6 +18,9 @@ function iterate(object, fn, scope) {
 
 // returns any found URL mapping for the given request
 function getRedirectURL(requestURL) {
+	
+	 mappings = require('./mappings.json');
+	 
     var found;
     iterate(mappings, function (url, mapping) {
         if (requestURL === url) {
@@ -52,16 +55,19 @@ function generateNotFound(request, response) {
 http.createServer(function (request, response) {
     var loc = getRedirectURL(request.url);
     console.log("Request to " + request.url);
-    
-    if (!loc && request.url != "/add") {
+    if (!loc) {
         generateNotFound(request, response);
-    } else if (request.url == "/remove") {
-      console.log('Remove hit')
     } else {
+    	  console.log("Redirecting to " + loc);
         response.writeHead(302, {
             "Location": loc
         });
     }
     response.end();
 }).listen(80);
+
+console.log("Started see on port 80");
+
+
+
 
