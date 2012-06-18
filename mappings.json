@@ -1,23 +1,16 @@
  {
    "/apexlistener" : "http://www.oracle.com/technetwork/developer-tools/apex-listener/overview/index.html",
-   "/bugtrack" : "http://192.168.1.227/bugtrack",
-   "/clientinfo" : "http://192.168.1.22:1000/logging/clientinfo.php",
-   "/contacts" : "https://docs.google.com/spreadsheet/ccc?key=0ArvZqNZCUM8LdEM1SVNLam1Bd3JCVTZ2UEFKOVRwQ3c&pli=1#gid=0",
    "/extjs" : "http://www.sencha.com/products/extjs/",
    "/extjs4api" : "http://docs.sencha.com/ext-js/4-1/#!/api",
    "/google" : "http://www.google.com",
    "/glassfish" : "http://glassfish.java.net",
    "/kaba" : "http://www.kaba.com/workforce-management",
    "/metalink" : "http://support.oracle.com",
-   "/mantis" : "http://192.168.1.227/bugtrack",
    "/mail" : "http://mail.google.com",
    "/node" : "http://nodejs.org",
    "/oracle" : "http://www.oracle.com",
    "/sqldeveloper" : "http://www.oracle.com/technetwork/developer-tools/sql-developer/overview/index.html",
    "/tds" : "http://www.tds.ie",
    "/webex" : "http://www.webex.com/",
-   "/webmail" : "http://192.168.1.1/exchange",
-   "/websvn" : "http://192.168.1.227/websvn-2.3.2",
-   "/wiki" : "http://192.168.1.227/wiki",
    "/zendesk" : "http://service.tds.ie"
 }
