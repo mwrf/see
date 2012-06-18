@@ -56,6 +56,8 @@ function generateNotFound(request, response) {
     response.write(generateFooter());
 };
 
+var port = process.argv[2] || 80;
+
 http.createServer(function (request, response) {
     var loc = getRedirectURL(request.url);
     console.log("Request to " + request.url);
@@ -68,9 +70,9 @@ http.createServer(function (request, response) {
         });
     }
     response.end();
-}).listen(80);
+}).listen(port);
 
-console.log("Started see on port 80");
+console.log("Started see on port " + port);
 
 
 
