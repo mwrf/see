@@ -3,7 +3,14 @@
  */
  
 var http = require('http');
-var mappings = require('./mappings.json');;
+var mappings = require('./mappings.json');
+
+// periodically reloads the mappings file
+setInterval(function(){
+	var name = require.resolve('./mappings.json');
+	delete require.cache[name];
+	mappings = require('./mappings.json');
+}, 5 * 1000);
 
 // utility function to walk over objects
 function iterate(object, fn, scope) {
