@@ -3,7 +3,7 @@
  */
  
 var http = require('http');
-var mappings;
+var mappings = require('./mappings.json');;
 
 // utility function to walk over objects
 function iterate(object, fn, scope) {
@@ -18,9 +18,6 @@ function iterate(object, fn, scope) {
 
 // returns any found URL mapping for the given request
 function getRedirectURL(requestURL) {
-	
-	 mappings = require('./mappings.json');
-	 
     var found;
     iterate(mappings, function (url, mapping) {
         if (requestURL === url) {
