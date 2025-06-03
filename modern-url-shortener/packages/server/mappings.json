@@ -1,0 +1,16 @@
+{
+   "/apexlistener" : "http://www.oracle.com/technetwork/developer-tools/apex-listener/overview/index.html",
+   "/extjs" : "http://www.sencha.com/products/extjs/",
+   "/extjs4api" : "http://docs.sencha.com/ext-js/4-1/#!/api",
+   "/google" : "http://www.google.com",
+   "/glassfish" : "http://glassfish.java.net",
+   "/kaba" : "http://www.kaba.com/workforce-management",
+   "/metalink" : "http://support.oracle.com",
+   "/mail" : "http://mail.google.com",
+   "/node" : "http://nodejs.org",
+   "/oracle" : "http://www.oracle.com",
+   "/sqldeveloper" : "http://www.oracle.com/technetwork/developer-tools/sql-developer/overview/index.html",
+   "/tds" : "http://www.tds.ie",
+   "/webex" : "http://www.webex.com/",
+   "/zendesk" : "http://service.tds.ie"
+}
