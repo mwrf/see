@@ -1,0 +1,23 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "See - A simple short URL redirect thing.",
+  "main": "see.js",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mwrf/see.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mwrf/see/issues"
+  },
+  "homepage": "https://github.com/mwrf/see#readme",
+  "devDependencies": {
+    "playwright": "^1.52.0"
+  }
+}
