@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Links</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Link Management</h1>
+
+    <h2>Add New Link</h2>
+    <form action="/add" method="post">
+        <label for="short_url">Short URL:</label>
+        <input type="text" id="short_url" name="short_url" required>
+        <br><br>
+        <label for="full_url">Full URL:</label>
+        <input type="text" id="full_url" name="full_url" required>
+        <br><br>
+        <button type="submit">Add Link</button>
+    </form>
+
+    <h2>Existing Links</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Short URL</th>
+                <th>Full URL</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Mappings will be dynamically inserted here by see.js -->
+        </tbody>
+    </table>
+
+    <script>
+        // Fetch mappings and populate the table
+        fetch('/mappings')
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.querySelector('table tbody');
+                for (const short_url in data) {
+                    const full_url = data[short_url];
+                    const row = tbody.insertRow();
+                    row.insertCell().textContent = short_url;
+                    row.insertCell().textContent = full_url;
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.onclick = function() {
+                        fetch('/delete', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ short_url: short_url })
+                        }).then(() => location.reload());
+                    };
+                    row.insertCell().appendChild(deleteButton);
+                }
+            });
+    </script>
+</body>
+</html>
