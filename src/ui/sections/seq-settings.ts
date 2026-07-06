@@ -1,7 +1,7 @@
 /**
- * Sequencer / data section: tempo nudge, beat & length, step-key mode
- * (trig / keyboard / mute / pattern set), octave shift, pattern navigation,
- * WRITE, motion-seq list + clear, and file export/import.
+ * Sequencer / data menu: step-key modes (STEP EDIT / KEYBOARD / PART MUTE /
+ * PATTERN SET), octave shift, pattern navigation, motion seq controls, and
+ * file export/import. (Tempo / beat / length / write live next to the LCD.)
  */
 
 import { exportAll, exportPattern, parseImport, pickFile } from '../../data/file-io';
@@ -16,17 +16,12 @@ import {
   clearMotion,
   formatSlot,
   loadPattern,
-  setBeat,
   setLcd,
-  setLengthBars,
   setMotionMode,
   setStepKeyMode,
-  setTempo,
   shiftOctave,
-  writePattern,
 } from '../../state/actions';
 import { store, type StepKeyMode } from '../../state/store';
-import { BEATS } from '../../shared/model';
 import { MOTION_MODE_NAMES } from '../../shared/params';
 import { createButton, type PanelButton } from '../controls/button';
 import { row, section } from './helpers';
@@ -34,20 +29,14 @@ import { row, section } from './helpers';
 export function createSeqSettings(): HTMLElement {
   const { el, body } = section('SEQUENCER', 'sec-seq');
 
-  // --- tempo nudge
-  const tempoRow = row('seq-row');
-  const tempoDown = createButton({ label: 'TEMPO −', className: 'pbtn-sm', onPress: () => setTempo(store.get().pattern.tempo - 1) });
-  const tempoUp = createButton({ label: 'TEMPO +', className: 'pbtn-sm', onPress: () => setTempo(store.get().pattern.tempo + 1) });
-  tempoRow.append(tempoDown.el, tempoUp.el);
-
   // --- step key modes
   const modeRow = row('seq-row');
   const modeButtons = new Map<StepKeyMode, PanelButton>();
   const modes: [StepKeyMode, string][] = [
-    ['trig', 'STEP'],
+    ['trig', 'STEP EDIT'],
     ['keyboard', 'KEYBOARD'],
     ['mute', 'PART MUTE'],
-    ['patternSet', 'PTN SET'],
+    ['patternSet', 'PATTERN SET'],
   ];
   for (const [mode, label] of modes) {
     const btn = createButton({ label, led: true, className: 'pbtn-sm', onPress: () => setStepKeyMode(mode) });
@@ -61,22 +50,7 @@ export function createSeqSettings(): HTMLElement {
     createButton({ label: 'OCT +', className: 'pbtn-sm', onPress: () => shiftOctave(1) }).el,
   );
 
-  // --- beat / length
-  const beatRow = row('seq-row');
-  const beatBtn = createButton({
-    label: 'BEAT',
-    className: 'pbtn-sm',
-    onPress: () => {
-      const cur = store.get().pattern.beat;
-      const next = BEATS[(BEATS.indexOf(cur) + 1) % BEATS.length];
-      setBeat(next);
-    },
-  });
-  const lenDown = createButton({ label: 'LEN −', className: 'pbtn-sm', onPress: () => setLengthBars(store.get().pattern.lengthBars - 1) });
-  const lenUp = createButton({ label: 'LEN +', className: 'pbtn-sm', onPress: () => setLengthBars(store.get().pattern.lengthBars + 1) });
-  beatRow.append(beatBtn.el, lenDown.el, lenUp.el);
-
-  // --- pattern navigation + write
+  // --- pattern navigation
   const ptnRow = row('seq-row');
   const prevPtn = createButton({
     label: '◀ PTN',
@@ -88,8 +62,7 @@ export function createSeqSettings(): HTMLElement {
     className: 'pbtn-sm',
     onPress: () => void loadPattern(Math.min(255, store.get().patternSlot + 1)),
   });
-  const writeBtn = createButton({ label: 'WRITE', led: true, className: 'pbtn-sm pbtn-write', onPress: () => void writePattern() });
-  ptnRow.append(prevPtn.el, nextPtn.el, writeBtn.el);
+  ptnRow.append(prevPtn.el, nextPtn.el);
 
   // --- motion seq
   const motionRow = row('seq-row');
@@ -113,7 +86,6 @@ export function createSeqSettings(): HTMLElement {
     className: 'pbtn-sm',
     onPress: () => {
       const s = store.get();
-      // clear all motions targeting the selected part (or last one otherwise)
       const idxs = s.pattern.motions
         .map((m, i) => ({ m, i }))
         .filter(({ m }) => m.target === s.selectedPart)
@@ -191,14 +163,12 @@ export function createSeqSettings(): HTMLElement {
 
   function refresh(): void {
     const s = store.get();
-    for (const [mode, btn] of modeButtons) btn.setLed(s.stepKeyMode === mode, 'green');
-    writeBtn.setLed(s.patternDirty, 'orange');
-    beatBtn.el.querySelector('.pbtn-label')!.textContent = `BEAT ${s.pattern.beat}`;
+    for (const [mode, btn] of modeButtons) btn.setLed(s.stepKeyMode === mode, 'red');
     prevPtn.el.title = nextPtn.el.title = `pattern ${formatSlot(s.patternSlot)}`;
   }
   ['ui', 'pattern', 'transport', 'steps'].forEach((t) => store.subscribe(t, refresh));
   refresh();
 
-  body.append(tempoRow, modeRow, octRow, beatRow, ptnRow, motionRow, dataRow);
+  body.append(modeRow, octRow, ptnRow, motionRow, dataRow);
   return el;
 }

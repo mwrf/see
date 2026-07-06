@@ -20,7 +20,7 @@ export function createTransport(): HTMLElement {
     onPress: () => stop(),
   });
   const recBtn = createButton({
-    label: '⏺',
+    label: '●',
     led: true,
     className: 'pbtn-big pbtn-rec',
     onPress: () => toggleRec(),

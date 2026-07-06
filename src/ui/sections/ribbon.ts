@@ -1,4 +1,8 @@
-/** Arpeggiator ribbon + slider (touch strips). */
+/**
+ * Arpeggiator: ribbon strip + gate slider. Vertical in landscape (bottom-left
+ * corner, like the hardware); horizontal in portrait. The component detects
+ * its own orientation from its rendered shape.
+ */
 
 import { ribbon, slider } from '../../state/actions';
 import { section } from './helpers';
@@ -13,21 +17,38 @@ export function createRibbonSection(): HTMLElement {
 
   function posFromEvent(e: PointerEvent): number {
     const rect = strip.getBoundingClientRect();
+    if (rect.height > rect.width) {
+      // vertical: top = high value
+      return Math.min(1, Math.max(0, 1 - (e.clientY - rect.top) / rect.height));
+    }
     return Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+  }
+
+  function placeCursor(p: number): void {
+    const rect = strip.getBoundingClientRect();
+    if (rect.height > rect.width) {
+      cursor.classList.add('vert');
+      cursor.style.top = `${(1 - p) * 100}%`;
+      cursor.style.left = '';
+    } else {
+      cursor.classList.remove('vert');
+      cursor.style.left = `${p * 100}%`;
+      cursor.style.top = '';
+    }
   }
 
   strip.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     strip.setPointerCapture(e.pointerId);
     const p = posFromEvent(e);
-    cursor.style.left = `${p * 100}%`;
+    placeCursor(p);
     cursor.classList.add('on');
     ribbon(p);
   });
   strip.addEventListener('pointermove', (e) => {
     if (!strip.hasPointerCapture(e.pointerId)) return;
     const p = posFromEvent(e);
-    cursor.style.left = `${p * 100}%`;
+    placeCursor(p);
     ribbon(p);
   });
   const release = (e: PointerEvent): void => {
@@ -49,7 +70,7 @@ export function createRibbonSection(): HTMLElement {
 
   const sliderWrap = document.createElement('div');
   sliderWrap.className = 'arp-slider-wrap';
-  sliderWrap.innerHTML = '<span class="ribbon-hint">GATE</span>';
+  sliderWrap.innerHTML = '<span class="ribbon-hint arp-slider-hint">GATE</span>';
   sliderWrap.prepend(sliderEl);
 
   body.append(strip, sliderWrap);

@@ -12,3 +12,14 @@ export function row(className = ''): HTMLElement {
   el.className = `control-row ${className}`;
   return el;
 }
+
+/** Silkscreen list — the printed reference tables on the hardware panel. */
+export function silkList(items: string[], columns = 2, numbered = true): HTMLElement {
+  const el = document.createElement('div');
+  el.className = 'silk-list';
+  el.style.setProperty('--silk-cols', String(columns));
+  el.innerHTML = items
+    .map((name, i) => `<span>${numbered ? `<i>${i + 1}</i>` : ''}${name}</span>`)
+    .join('');
+  return el;
+}

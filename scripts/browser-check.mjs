@@ -81,8 +81,10 @@ try {
     if (!cls.includes('led-on')) throw new Error(`step ${i} LED not lit after toggle`);
   }
 
-  // select D4 (hat) and add offbeats
-  await page.locator('.pbtn-part', { hasText: 'D4' }).click();
+  // select D4 (hat, drum group key "4") and add offbeats
+  const drumKeys = page.locator('.part-group').first().locator('.pbtn-part');
+  const synthKeys = page.locator('.part-group').nth(1).locator('.pbtn-part');
+  await drumKeys.nth(3).click();
   for (const i of [2, 6, 10, 14]) await keys.nth(i).click();
 
   // play and watch the playhead move
@@ -102,8 +104,8 @@ try {
   console.log('playhead positions seen:', [...seen].sort((a, b) => a - b).join(', '));
 
   // knob drag: turn cutoff down on D1
-  await page.locator('.pbtn-part', { hasText: 'D1' }).click();
-  const cutoff = page.locator('.sec-filter .knob-dial').nth(1);
+  await drumKeys.nth(0).click();
+  const cutoff = page.locator('.sec-filter .knob-dial').nth(0);
   const box = await cutoff.boundingBox();
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();
@@ -112,10 +114,10 @@ try {
   console.log('knob drag ok');
 
   // keyboard mode: play a note live on S1
-  await page.locator('.pbtn-part', { hasText: 'S1' }).click();
+  await synthKeys.nth(0).click();
   await page.locator('.pbtn-sm', { hasText: 'KEYBOARD' }).click();
   await keys.nth(7).click();
-  await page.locator('.pbtn-sm', { hasText: 'STEP' }).first().click();
+  await page.locator('.pbtn-sm', { hasText: 'STEP EDIT' }).first().click();
   console.log('keyboard mode ok');
 
   // step editor: toggle a step on S1, long-press it, edit note

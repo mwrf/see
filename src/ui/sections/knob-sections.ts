@@ -1,15 +1,19 @@
 /**
- * The four part-edit knob sections (OSC/WAVE, FILTER, MOD/LFO, AMP) plus the
- * master section. Knobs re-bind to the selected part, like the hardware
- * panel where one physical knob edits whatever part is selected.
+ * Part-edit knob sections mirroring the hardware zones:
+ *  - PART COMMON (top right): pitch, EG time, pan, level + common toggles
+ *  - MODULATION (top far right): LFO wave/speed/depth/dest + sync toggles
+ *  - SYNTH OSCILLATOR: osc type / edits / glide (wave + pitch for drums)
+ *  - SYNTH FILTER: type, cutoff, resonance, EG int
+ * Knobs re-bind to the selected part, like the hardware panel.
  */
 
 import { getParam, isDrumPart, isSynthPart, setParam } from '../../state/actions';
 import { store } from '../../state/store';
 import type { MotionTarget } from '../../shared/model';
+import { FILTER_TYPE_NAMES, LFO_WAVE_NAMES, OSC_TYPE_NAMES } from '../../shared/params';
 import { createButton, type PanelButton } from '../controls/button';
 import { createKnob } from '../controls/knob';
-import { row, section } from './helpers';
+import { row, section, silkList } from './helpers';
 
 type Binding = { target: MotionTarget; paramId: string } | null;
 
@@ -44,66 +48,21 @@ function paramToggle(label: string, paramId: string, drumToo = true): PanelButto
     const part = store.get().selectedPart;
     const valid = part !== 'ACC' && (drumToo || isSynthPart(part));
     btn.el.classList.toggle('pbtn-disabled', !valid);
-    btn.setLed(valid && getParam(part, paramId) >= 0.5, 'orange');
+    btn.setLed(valid && getParam(part, paramId) >= 0.5, 'red');
   };
   ['ui', 'params', 'pattern'].forEach((t) => store.subscribe(t, refresh));
   refresh();
   return btn;
 }
 
-export function createOscSection(): HTMLElement {
-  const { el, body } = section('OSCILLATOR / WAVE', 'sec-osc');
-  const r = row();
-  r.append(
-    createKnob({
-      label: 'TYPE·WAVE',
-      resolve: forSelected('oscType', 'waveId'),
-      size: 'lg',
-    }).el,
-    createKnob({ label: 'EDIT1·PITCH', resolve: forSelected('oscEdit1', 'pitch') }).el,
-    createKnob({ label: 'EDIT2', resolve: forSelected('oscEdit2', null) }).el,
-    createKnob({ label: 'GLIDE', resolve: forSelected('glide', null) }).el,
-    createKnob({ label: 'TUNE', resolve: forSelected('tune', null) }).el,
-  );
-  body.appendChild(r);
-  return el;
-}
-
-export function createFilterSection(): HTMLElement {
-  const { el, body } = section('FILTER', 'sec-filter');
-  const r = row();
-  r.append(
-    createKnob({ label: 'TYPE', resolve: forSelected('filterType') }).el,
-    createKnob({ label: 'CUTOFF', resolve: forSelected('cutoff'), size: 'lg' }).el,
-    createKnob({ label: 'RESONANCE', resolve: forSelected('resonance') }).el,
-    createKnob({ label: 'EG INT', resolve: forSelected('egInt') }).el,
-  );
-  body.appendChild(r);
-  return el;
-}
-
-export function createModSection(): HTMLElement {
-  const { el, body } = section('MODULATION LFO', 'sec-mod');
-  const r = row();
-  r.append(
-    createKnob({ label: 'WAVE', resolve: forSelected('lfoWave') }).el,
-    createKnob({ label: 'SPEED', resolve: forSelected('lfoSpeed') }).el,
-    createKnob({ label: 'DEPTH', resolve: forSelected('lfoDepth') }).el,
-    createKnob({ label: 'DEST', resolve: forSelected('lfoDest') }).el,
-  );
-  const toggles = row('toggle-row');
-  toggles.append(paramToggle('BPM SYNC', 'lfoBpmSync').el, paramToggle('KEY SYNC', 'lfoKeySync').el);
-  body.append(r, toggles);
-  return el;
-}
-
-export function createAmpSection(): HTMLElement {
-  const { el, body } = section('AMP / EG', 'sec-amp');
-  const r = row();
-  r.append(
-    createKnob({ label: 'LEVEL', resolve: forSelected('level', 'level', true), size: 'lg' }).el,
-    createKnob({ label: 'PAN', resolve: forSelected('pan') }).el,
-    createKnob({ label: 'EG TIME', resolve: forSelected('egTime') }).el,
+export function createPartCommonSection(): HTMLElement {
+  const { el, body } = section('PART COMMON', 'sec-common');
+  const knobs = row('tight-row');
+  knobs.append(
+    createKnob({ label: 'PITCH', resolve: forSelected('tune', 'pitch'), size: 'sm' }).el,
+    createKnob({ label: 'EG TIME', resolve: forSelected('egTime'), size: 'sm' }).el,
+    createKnob({ label: 'PAN', resolve: forSelected('pan'), size: 'sm' }).el,
+    createKnob({ label: 'LEVEL', resolve: forSelected('level', 'level', true) }).el,
   );
   const toggles = row('toggle-row');
   toggles.append(
@@ -114,18 +73,57 @@ export function createAmpSection(): HTMLElement {
   );
   const fxSel = row('toggle-row');
   fxSel.append(createKnob({ label: 'FX SELECT', resolve: forSelected('fxSend'), size: 'sm' }).el);
-  body.append(r, toggles, fxSel);
+  body.append(knobs, toggles, fxSel);
   return el;
 }
 
-export function createMasterSection(): HTMLElement {
-  const { el, body } = section('MASTER', 'sec-master');
-  const r = row();
+export function createModSection(): HTMLElement {
+  const { el, body } = section('MODULATION', 'sec-mod');
+  const r = row('tight-row');
   r.append(
-    createKnob({ label: 'SWING', resolve: () => ({ target: 'MASTER', paramId: 'swing' }) }).el,
-    createKnob({ label: 'ACCENT', resolve: () => ({ target: 'MASTER', paramId: 'accentLevel' }) }).el,
-    createKnob({ label: 'MASTER VOL', resolve: () => ({ target: 'MASTER', paramId: 'masterVolume' }), size: 'lg' }).el,
+    createKnob({ label: 'TYPE', resolve: forSelected('lfoWave'), size: 'sm' }).el,
+    createKnob({ label: 'SPEED', resolve: forSelected('lfoSpeed'), size: 'sm' }).el,
+    createKnob({ label: 'DEPTH', resolve: forSelected('lfoDepth'), size: 'sm' }).el,
+    createKnob({ label: 'DEST', resolve: forSelected('lfoDest'), size: 'sm' }).el,
   );
-  body.appendChild(r);
+  const toggles = row('toggle-row');
+  toggles.append(paramToggle('BPM SYNC', 'lfoBpmSync').el, paramToggle('KEY SYNC', 'lfoKeySync').el);
+  body.append(r, toggles, silkList(LFO_WAVE_NAMES, 3, false));
+  return el;
+}
+
+export function createOscSection(): HTMLElement {
+  const { el, body } = section('SYNTH OSCILLATOR', 'sec-osc');
+  const top = row();
+  top.append(
+    createKnob({
+      label: 'TYPE·WAVE',
+      resolve: forSelected('oscType', 'waveId'),
+      size: 'lg',
+    }).el,
+    createKnob({ label: 'OSC EDIT 1', resolve: forSelected('oscEdit1', null) }).el,
+  );
+  const bottom = row();
+  bottom.append(
+    createKnob({ label: 'OSC EDIT 2', resolve: forSelected('oscEdit2', null) }).el,
+    createKnob({ label: 'GLIDE', resolve: forSelected('glide', null) }).el,
+  );
+  body.append(top, bottom, silkList(OSC_TYPE_NAMES, 2));
+  return el;
+}
+
+export function createFilterSection(): HTMLElement {
+  const { el, body } = section('SYNTH FILTER', 'sec-filter');
+  const top = row();
+  top.append(
+    createKnob({ label: 'CUTOFF', resolve: forSelected('cutoff'), size: 'lg' }).el,
+    createKnob({ label: 'RESONANCE', resolve: forSelected('resonance') }).el,
+  );
+  const bottom = row();
+  bottom.append(
+    createKnob({ label: 'TYPE', resolve: forSelected('filterType') }).el,
+    createKnob({ label: 'EG INT', resolve: forSelected('egInt') }).el,
+  );
+  body.append(top, bottom, silkList(FILTER_TYPE_NAMES, 2));
   return el;
 }

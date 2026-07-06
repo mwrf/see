@@ -1,24 +1,27 @@
-/* Theme variables — EMX-1 blue-grey faceplate with red/orange accents. */
+/* Theme variables — EMX-1 metallic blue faceplate, white silkscreen. */
 
 :root {
   --panel-scale: 1;
-  --panel-bg: linear-gradient(160deg, #4a5a6e 0%, #3c4a5c 45%, #35414f 100%);
-  --panel-edge: #232c36;
-  --section-bg: rgba(0, 0, 0, 0.14);
-  --section-border: rgba(255, 255, 255, 0.08);
-  --silk: #d8dee6;
-  --silk-dim: #9aa6b2;
-  --knob-cap: radial-gradient(circle at 34% 30%, #4c4f55, #26282c 65%, #17181b);
-  --knob-ring: #191b1f;
-  --pointer: #e8e4da;
-  --btn-face: linear-gradient(180deg, #3a4048 0%, #2b3037 55%, #22262c 100%);
-  --btn-face-active: linear-gradient(180deg, #2b3037, #1b1f24);
-  --btn-edge: #14171b;
+  --panel-bg: linear-gradient(165deg, #5590dd 0%, #3a6fc4 35%, #2f5fae 70%, #2a55a0 100%);
+  --panel-edge: #17356b;
+  --silk: #ffffff;
+  --silk-dim: rgba(255, 255, 255, 0.75);
+  --silk-line: rgba(255, 255, 255, 0.85);
+  --section-bg: rgba(255, 255, 255, 0.04);
+  --knob-cap: radial-gradient(circle at 34% 30%, #3f4247, #202226 62%, #101114);
+  --knob-ring: #d8dde4;
+  --pointer: #f2f4f6;
+  --btn-face: linear-gradient(180deg, #ffffff 0%, #eef1f4 55%, #d9dee4 100%);
+  --btn-face-active: linear-gradient(180deg, #d5dae0, #c2c8cf);
+  --btn-edge: #8d99a8;
+  --btn-text: #1d3f86;
   --led-red: #ff3b2f;
   --led-green: #46e05a;
   --led-orange: #ffa62b;
-  --lcd-bezel: #1a1d21;
-  --accent-red: #c93b2e;
+  --lcd-bezel: #10254d;
+  --lcd-amber-hi: #f0c04a;
+  --lcd-amber-lo: #d99f26;
+  --lcd-ink: #3a2a05;
   --font-panel: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
 }
 
@@ -31,7 +34,7 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: #14181d;
+  background: #101d33;
   font-family: var(--font-panel);
   color: var(--silk);
   overscroll-behavior: none;

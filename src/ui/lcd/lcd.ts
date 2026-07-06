@@ -46,8 +46,8 @@ export function createLcd(): Lcd {
         for (let gy = 0; gy < GLYPH_H; gy++) {
           const on = (bits >> gy) & 1;
           ctx.fillStyle = on
-            ? `rgba(20, 45, 18, ${0.92 * bright})`
-            : 'rgba(20, 45, 18, 0.08)';
+            ? `rgba(48, 33, 6, ${0.94 * bright})`
+            : 'rgba(48, 33, 6, 0.08)';
           ctx.fillRect(x0 + gx * (DOT + GAP), y0 + gy * (DOT + GAP), DOT, DOT);
         }
       }
@@ -56,11 +56,11 @@ export function createLcd(): Lcd {
 
   function render(): void {
     const s = store.get();
-    // backlight
+    // amber backlight, like the hardware
     const grad = ctx.createLinearGradient(0, 0, 0, logicalH);
-    grad.addColorStop(0, '#9fbf3f');
-    grad.addColorStop(0.5, '#b3d24d');
-    grad.addColorStop(1, '#98b93c');
+    grad.addColorStop(0, '#f2c351');
+    grad.addColorStop(0.5, '#f6cf6b');
+    grad.addColorStop(1, '#e5ad34');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, logicalW, logicalH);
 

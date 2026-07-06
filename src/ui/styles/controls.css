@@ -1,4 +1,5 @@
-/* Knobs, buttons, LEDs, step keys, ribbon, slider. */
+/* Knobs, buttons, LEDs, step keys, ribbon, slider — EMX hardware look:
+   black knobs with white pointers, white keys with blue silkscreen text. */
 
 /* ---- knobs ---- */
 .knob {
@@ -12,8 +13,8 @@
 .knob-dial {
   position: relative;
   border-radius: 50%;
-  background: var(--knob-ring);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  background: radial-gradient(circle at 50% 40%, #eef1f4, #b9c2cc 75%, #8d99a8);
+  box-shadow: 0 3px 6px rgba(0, 20, 60, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.6);
   display: grid;
   place-items: center;
   outline: none;
@@ -24,42 +25,43 @@
 }
 
 .knob-md .knob-dial { width: 44px; height: 44px; }
-.knob-lg .knob-dial { width: 56px; height: 56px; }
+.knob-lg .knob-dial { width: 58px; height: 58px; }
 .knob-sm .knob-dial { width: 36px; height: 36px; }
 
 .knob-cap {
-  width: 82%;
-  height: 82%;
+  width: 84%;
+  height: 84%;
   border-radius: 50%;
   background: var(--knob-cap);
-  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.7), inset 0 2px 3px rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.75), inset 0 2px 3px rgba(255, 255, 255, 0.14);
   position: relative;
 }
 
 .knob-pointer {
   position: absolute;
-  top: 6%;
+  top: 5%;
   left: 50%;
   width: 3px;
-  height: 34%;
+  height: 36%;
   margin-left: -1.5px;
   border-radius: 2px;
   background: var(--pointer);
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.9);
 }
 
 .knob-label {
   font-size: 8.5px;
-  letter-spacing: 0.8px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
   color: var(--silk);
   text-align: center;
   white-space: nowrap;
 }
 
-.knob-disabled { opacity: 0.28; pointer-events: none; }
-.knob-active .knob-cap { box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.7), 0 0 8px rgba(255, 166, 43, 0.5); }
+.knob-disabled { opacity: 0.3; pointer-events: none; }
+.knob-active .knob-cap { box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.75), 0 0 8px rgba(255, 166, 43, 0.6); }
 
-/* ---- buttons ---- */
+/* ---- buttons: white keys with blue text, like the hardware ---- */
 .pbtn {
   position: relative;
   display: inline-flex;
@@ -67,13 +69,15 @@
   justify-content: center;
   gap: 5px;
   background: var(--btn-face);
-  color: var(--silk);
+  color: var(--btn-text);
   border: 1px solid var(--btn-edge);
-  border-radius: 5px;
+  border-bottom-width: 2px;
+  border-radius: 4px;
   padding: 7px 10px;
   font-size: 10px;
-  letter-spacing: 1px;
-  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  box-shadow: 0 2px 3px rgba(0, 20, 60, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.9);
   touch-action: none;
   min-height: 30px;
 }
@@ -81,29 +85,29 @@
 .pbtn:active,
 .pbtn-active {
   background: var(--btn-face-active);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+  box-shadow: inset 0 2px 4px rgba(0, 20, 60, 0.35);
   transform: translateY(1px);
 }
 
 .pbtn-big {
-  min-width: 54px;
-  min-height: 44px;
+  min-width: 52px;
+  min-height: 42px;
   font-size: 15px;
 }
 
-.pbtn-sm { padding: 5px 8px; font-size: 9px; min-height: 26px; }
+.pbtn-sm { padding: 5px 7px; font-size: 9px; min-height: 26px; }
 .pbtn-muted .pbtn-label { opacity: 0.35; text-decoration: line-through; }
-.pbtn-disabled { opacity: 0.3; pointer-events: none; }
-.pbtn-write { border-color: #6b4a17; }
-.pbtn-rec { color: #ff8f86; }
-.pbtn-play { color: #9defa8; }
+.pbtn-disabled { opacity: 0.35; pointer-events: none; }
+.pbtn-write { color: #a33; }
+.pbtn-rec { color: #c81e12; font-size: 18px; }
+.pbtn-play { color: #14691f; font-size: 16px; }
 
 .pbtn-led {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #3a1210;
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.8);
+  background: #7d2721;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.55);
   flex: none;
 }
 
@@ -111,9 +115,39 @@
 .pbtn-led.led-on.led-green { background: var(--led-green); box-shadow: 0 0 7px var(--led-green); }
 .pbtn-led.led-on.led-orange { background: var(--led-orange); box-shadow: 0 0 7px var(--led-orange); }
 
-/* ---- part buttons ---- */
-.part-row { display: flex; gap: 5px; flex-wrap: wrap; }
-.pbtn-part { flex: 1 1 auto; min-width: 46px; flex-direction: column; gap: 2px; padding: 4px 6px; }
+/* ---- part groups ---- */
+.sec-parts {
+  display: flex;
+  gap: 14px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.part-group { flex: 1 1 auto; min-width: 0; }
+
+.part-group-title {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--silk);
+  border-bottom: 1px solid var(--silk-line);
+  margin-bottom: 5px;
+  padding-bottom: 2px;
+}
+
+.part-row { display: flex; gap: 5px; flex-wrap: nowrap; }
+
+.pbtn-part {
+  flex: 1 1 0;
+  min-width: 40px;
+  min-height: 44px;
+  flex-direction: column;
+  gap: 3px;
+  padding: 4px 5px;
+  font-size: 12px;
+}
+
+.pbtn-accent { font-size: 9px; }
 
 /* ---- step keys ---- */
 .bar-row {
@@ -123,7 +157,12 @@
   margin-bottom: 4px;
 }
 
-.bar-label { font-size: 10px; letter-spacing: 1.2px; color: var(--silk-dim); }
+.bar-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: var(--silk);
+}
 
 .stepkey-grid {
   display: grid;
@@ -131,40 +170,60 @@
   gap: 6px;
 }
 
+/* wider gaps between groups of four, like the hardware */
+.stepkey-grid .stepkey:nth-child(4n + 1):not(:first-child) { margin-left: 6px; }
+
 .stepkey {
   flex-direction: column;
   gap: 4px;
-  min-height: 52px;
+  min-height: 54px;
   border-radius: 4px;
-  background: linear-gradient(180deg, #e8e6df 0%, #cfccc2 60%, #b8b4a8 100%);
-  color: #33322d;
-  border: 1px solid #7f7c72;
-  font-weight: 700;
+  background: linear-gradient(180deg, #ffffff 0%, #eef1f4 55%, #d4dae1 100%);
+  color: #c81e12;
+  border: 1px solid #8d99a8;
+  border-bottom-width: 3px;
+  font-weight: 800;
+  font-size: 12px;
 }
 
-.stepkey:active { background: linear-gradient(180deg, #cfccc2, #a8a498); }
-.stepkey-beat { background: linear-gradient(180deg, #f4f2ec 0%, #dedbd2 60%, #c6c2b6 100%); }
+.stepkey:active { background: linear-gradient(180deg, #dde2e8, #c4cbd3); }
+.stepkey-beat { box-shadow: 0 2px 3px rgba(0, 20, 60, 0.45), inset 0 -3px 0 rgba(200, 30, 18, 0.25); }
 .stepkey-off-range { opacity: 0.25; pointer-events: none; }
 
-.stepkey .pbtn-led { width: 9px; height: 9px; background: #4a1512; }
+.stepkey .pbtn-led { width: 9px; height: 9px; background: #7d2721; }
 
 .stepkey-playhead {
   outline: 2px solid var(--led-red);
   outline-offset: -2px;
-  box-shadow: 0 0 10px rgba(255, 59, 47, 0.6);
+  box-shadow: 0 0 10px rgba(255, 59, 47, 0.7);
 }
 
-/* ---- ribbon / slider ---- */
+/* ---- arpeggiator (vertical in landscape) ---- */
+.sec-ribbon .section-body {
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+  gap: 14px;
+  height: 100%;
+}
+
 .ribbon-strip {
   position: relative;
-  height: 44px;
-  flex: 1;
   border-radius: 6px;
-  background: linear-gradient(180deg, #16181c, #23262c 50%, #16181c);
-  border: 1px solid #0c0e11;
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7);
+  background: linear-gradient(90deg, #e8ecf0, #f7f9fb 50%, #dfe4e9);
+  border: 1px solid #8d99a8;
+  box-shadow: inset 0 2px 6px rgba(0, 20, 60, 0.35);
   touch-action: none;
   overflow: hidden;
+}
+
+body.landscape .sec-ribbon .ribbon-strip { width: 56px; min-height: 120px; }
+body.landscape .sec-ribbon .arp-slider-wrap { flex-direction: column; }
+body.landscape .arp-slider {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 26px;
+  height: 100px;
 }
 
 .ribbon-hint {
@@ -173,8 +232,8 @@
   display: grid;
   place-items: center;
   font-size: 9px;
-  letter-spacing: 3px;
-  color: rgba(216, 222, 230, 0.35);
+  letter-spacing: 2px;
+  color: rgba(30, 60, 120, 0.5);
   pointer-events: none;
 }
 
@@ -189,21 +248,35 @@
   opacity: 0;
 }
 
-.ribbon-cursor.on { opacity: 1; box-shadow: 0 0 10px var(--led-orange); }
+.ribbon-cursor.vert {
+  left: 0;
+  right: 0;
+  bottom: auto;
+  width: auto;
+  height: 3px;
+  margin-left: 0;
+  margin-top: -1.5px;
+}
 
-.sec-ribbon .section-body { flex-direction: row; align-items: stretch; }
+.ribbon-cursor.on { opacity: 1; box-shadow: 0 0 10px var(--led-orange); }
 
 .arp-slider-wrap {
   position: relative;
   display: flex;
   align-items: center;
-  padding: 0 4px;
+  gap: 4px;
+  padding: 0 2px;
 }
 
 .arp-slider {
   width: 90px;
-  accent-color: var(--led-orange);
+  accent-color: #22336b;
   touch-action: none;
+}
+
+.arp-slider-hint {
+  position: static;
+  color: var(--silk-dim);
 }
 
 /* ---- transport ---- */
@@ -218,6 +291,30 @@
 .toggle-row,
 .seq-row { gap: 5px; }
 .fx-row { align-items: center; }
+.tight-row { gap: 5px; }
+
+/* ---- silkscreen reference lists (printed tables on the hardware) ---- */
+.silk-list {
+  display: grid;
+  grid-template-columns: repeat(var(--silk-cols, 2), 1fr);
+  gap: 1px 10px;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.35);
+  font-size: 8px;
+  letter-spacing: 0.6px;
+  color: var(--silk-dim);
+}
+
+.silk-list span { white-space: nowrap; overflow: hidden; }
+
+.silk-list i {
+  display: inline-block;
+  font-style: normal;
+  min-width: 13px;
+  color: var(--silk);
+  font-weight: 700;
+}
 
 /* ---- song ---- */
 .song-info {
@@ -234,13 +331,13 @@
   bottom: 30%;
   transform: translateX(-50%);
   z-index: 50;
-  background: #1d2229;
-  border: 1px solid #0d0f13;
+  background: #1c3564;
+  border: 2px solid #fff;
   border-radius: 10px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
   padding: 12px 16px;
   min-width: 220px;
-  color: var(--silk);
+  color: #fff;
 }
 
 .step-editor-title {
@@ -265,7 +362,7 @@
   border-radius: 6px;
   border: 1px solid var(--btn-edge);
   background: var(--btn-face);
-  color: var(--silk);
+  color: var(--btn-text);
 }
 
 .step-editor-val {
@@ -273,19 +370,19 @@
   text-align: center;
   font-size: 15px;
   font-weight: 700;
-  color: #b3d24d;
+  color: var(--lcd-amber-hi);
 }
 
-.step-editor-lbl { font-size: 9px; letter-spacing: 1.4px; color: var(--silk-dim); }
+.step-editor-lbl { font-size: 9px; letter-spacing: 1.4px; color: rgba(255, 255, 255, 0.7); }
 
 .step-editor-close {
   width: 100%;
   margin-top: 4px;
   padding: 9px;
   border-radius: 6px;
-  border: 1px solid #6b4a17;
-  background: var(--btn-face);
-  color: var(--led-orange);
+  border: 1px solid #fff;
+  background: transparent;
+  color: #fff;
   letter-spacing: 2px;
   font-size: 11px;
 }

@@ -1,17 +1,22 @@
 /**
- * Top-level panel layout. One set of section components, re-slotted by CSS
- * grid for landscape (faithful full panel) vs portrait (stacked scroll with
- * sticky transport + step keys).
+ * Top-level panel layout, mirroring the real EMX-1 faceplate zones:
+ *   row 1: logo + master knobs | VALVE FORCE window | PART COMMON | MODULATION
+ *   row 2: LCD block           | EFFECT             | SYNTH OSC   | SYNTH FILTER
+ *   row 3: menu / song         | (effect, osc, filter continue)
+ *   row 4: transport | part rows      (footer)
+ *          arpeggiator | 16 step keys
+ * Portrait re-slots the same components into a scroll layout with the
+ * transport + parts + step keys pinned as a footer.
  */
 
-import { createLcd } from './lcd/lcd';
+import { createLcdBlock } from './sections/lcd-block';
+import { createBrandSection } from './sections/brand';
 import { createFxSection, createValveSection } from './sections/fx-valve';
 import {
-  createAmpSection,
   createFilterSection,
-  createMasterSection,
   createModSection,
   createOscSection,
+  createPartCommonSection,
 } from './sections/knob-sections';
 import { createPartSelect } from './sections/part-select';
 import { createRibbonSection } from './sections/ribbon';
@@ -25,47 +30,39 @@ export function mountPanel(root: HTMLElement): void {
   const panel = document.createElement('div');
   panel.className = 'panel';
 
-  const header = document.createElement('header');
-  header.className = 'panel-header';
-  header.innerHTML = `
-    <span class="brand">EMX<span class="brand-web">web</span></span>
-    <span class="brand-sub">MUSIC PRODUCTION STATION · ELECTRIBE MX EMULATOR</span>
-  `;
-
-  const lcd = createLcd();
-  lcd.el.classList.add('area-lcd');
-
   const sections: [string, HTMLElement][] = [
-    ['area-seq', createSeqSettings()],
+    ['area-brand', createBrandSection()],
+    ['area-valve', createValveSection()],
+    ['area-common', createPartCommonSection()],
+    ['area-mod', createModSection()],
+    ['area-lcd', createLcdBlock()],
+    ['area-fx', createFxSection()],
     ['area-osc', createOscSection()],
     ['area-filter', createFilterSection()],
-    ['area-mod', createModSection()],
-    ['area-amp', createAmpSection()],
-    ['area-fx', createFxSection()],
-    ['area-valve', createValveSection()],
-    ['area-master', createMasterSection()],
-    ['area-song', createSongSection()],
-    ['area-ribbon', createRibbonSection()],
   ];
-
-  panel.appendChild(header);
-  panel.appendChild(lcd.el);
   for (const [area, el] of sections) {
     el.classList.add(area);
     panel.appendChild(el);
   }
 
-  // transport + part select + step keys live in one footer container so the
-  // portrait layout can pin them as a unit
+  // menu column: sequencer settings + song stacked
+  const menu = document.createElement('div');
+  menu.className = 'area-menu menu-col';
+  menu.append(createSeqSettings(), createSongSection());
+  panel.appendChild(menu);
+
+  // footer: transport + parts on top, arpeggiator + step keys below
   const footer = document.createElement('div');
   footer.className = 'panel-footer area-footer';
   const transport = createTransport();
   transport.classList.add('area-transport');
   const parts = createPartSelect();
   parts.classList.add('area-parts');
+  const arp = createRibbonSection();
+  arp.classList.add('area-arp');
   const steps = createStepKeys();
   steps.classList.add('area-steps');
-  footer.append(transport, parts, steps);
+  footer.append(transport, parts, arp, steps);
   panel.appendChild(footer);
   root.appendChild(panel);
 
@@ -74,12 +71,15 @@ export function mountPanel(root: HTMLElement): void {
     const portrait = window.innerHeight > window.innerWidth;
     document.body.classList.toggle('portrait', portrait);
     document.body.classList.toggle('landscape', !portrait);
-    // scale the landscape panel to fit the viewport
     if (!portrait) {
-      // fit both axes when possible; below the usability floor, fit height
-      // only and let the panel scroll horizontally
-      const fit = Math.min(window.innerWidth / 1300, window.innerHeight / 1010);
-      const scale = fit >= 0.55 ? fit : Math.min(0.55, Math.max(0.42, window.innerHeight / 1010));
+      // measure the real (unzoomed) panel size — zoom does not affect
+      // offsetWidth/Height — and fit both axes when possible; below the
+      // usability floor, fit height only and scroll horizontally
+      document.documentElement.style.setProperty('--panel-scale', '1');
+      const w = panel.offsetWidth + 20 || 1310;
+      const h = panel.offsetHeight + 16 || 1045;
+      const fit = Math.min(window.innerWidth / w, window.innerHeight / h);
+      const scale = fit >= 0.55 ? fit : Math.min(0.55, Math.max(0.42, window.innerHeight / h));
       document.documentElement.style.setProperty('--panel-scale', String(Math.min(1.5, scale)));
     } else {
       document.documentElement.style.setProperty('--panel-scale', '1');
@@ -87,4 +87,6 @@ export function mountPanel(root: HTMLElement): void {
   }
   window.addEventListener('resize', applyOrientation);
   applyOrientation();
+  // re-measure once fonts/layout settle
+  requestAnimationFrame(applyOrientation);
 }
