@@ -1,0 +1,18 @@
+{
+  "name": "EMX-Web — Electribe MX Emulator",
+  "short_name": "EMX-Web",
+  "description": "Web-based Korg Electribe MX (EMX-1) music production station emulator",
+  "start_url": ".",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#14181d",
+  "theme_color": "#3c4a5c",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
