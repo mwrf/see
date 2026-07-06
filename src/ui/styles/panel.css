@@ -1,0 +1,249 @@
+/* Landscape (faithful full-panel) layout + shared panel chrome. */
+
+#app {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+body.landscape #app {
+  height: 100dvh;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.panel {
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  background: var(--panel-bg);
+  border: 2px solid var(--panel-edge);
+  border-radius: 14px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.4),
+    0 18px 50px rgba(0, 0, 0, 0.6);
+  padding: 12px 16px 16px;
+}
+
+body.landscape .panel {
+  width: 1290px;
+  flex: none;
+  /* zoom scales the layout box too, so centering and scrolling stay correct */
+  zoom: var(--panel-scale);
+  display: grid;
+  grid-template-columns: 300px 260px 240px 230px 220px;
+  grid-template-rows: auto auto auto auto auto;
+  gap: 10px;
+  grid-template-areas:
+    'header  header  header header header'
+    'lcd     osc     filter mod    amp'
+    'seq     osc     filter mod    amp'
+    'seq     fx      fx     valve  master'
+    'ribbon  fx      fx     valve  master'
+    'footer  footer  footer footer footer';
+}
+
+.area-footer { grid-area: footer; }
+
+body.landscape .panel-footer {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  grid-template-areas:
+    'transport parts'
+    'steps     steps';
+  gap: 10px;
+}
+
+.panel-header {
+  grid-area: header;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 2px 6px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.brand {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #e9edf2;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.7);
+}
+
+.brand-web {
+  color: var(--led-orange);
+  font-style: italic;
+  font-size: 20px;
+  margin-left: 2px;
+}
+
+.brand-sub {
+  font-size: 11px;
+  letter-spacing: 1.6px;
+  color: var(--silk-dim);
+}
+
+.area-lcd { grid-area: lcd; }
+.area-transport { grid-area: transport; }
+.area-seq { grid-area: seq; }
+.area-osc { grid-area: osc; }
+.area-filter { grid-area: filter; }
+.area-mod { grid-area: mod; }
+.area-amp { grid-area: amp; }
+.area-fx { grid-area: fx; }
+.area-valve { grid-area: valve; }
+.area-master { grid-area: master; }
+.area-ribbon { grid-area: ribbon; }
+.area-parts { grid-area: parts; }
+.area-steps { grid-area: steps; }
+
+.panel-section {
+  background: var(--section-bg);
+  border: 1px solid var(--section-border);
+  border-radius: 8px;
+  padding: 6px 8px 8px;
+  min-width: 0;
+}
+
+.section-title {
+  margin: 0 0 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  color: var(--silk-dim);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  padding-bottom: 3px;
+}
+
+.section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.control-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+
+/* LCD frame */
+.lcd {
+  background: var(--lcd-bezel);
+  border-radius: 8px;
+  border: 1px solid #0b0d10;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.8), 0 1px 0 rgba(255, 255, 255, 0.08);
+  padding: 10px;
+}
+
+.lcd canvas {
+  display: block;
+  border-radius: 3px;
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.35);
+}
+
+/* Valve window */
+.valve-window {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, #100b06 0%, #060403 80%);
+  border: 2px solid #0a0c0f;
+  border-radius: 50% / 38%;
+  padding: 10px 18px;
+  box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.9);
+}
+
+.valve-tube {
+  --tube-glow: 0;
+  width: 22px;
+  height: 52px;
+  border-radius: 10px 10px 6px 6px;
+  background:
+    radial-gradient(circle at 50% 78%, rgba(255, 140, 40, calc(0.25 + var(--tube-glow) * 0.75)) 0%, transparent 55%),
+    linear-gradient(180deg, rgba(200, 210, 220, 0.16), rgba(120, 130, 140, 0.05));
+  border: 1px solid rgba(200, 210, 220, 0.25);
+  box-shadow:
+    0 0 calc(6px + var(--tube-glow) * 26px) rgba(255, 120, 20, calc(var(--tube-glow) * 0.8)),
+    inset 0 -6px 12px rgba(255, 120, 20, calc(0.1 + var(--tube-glow) * 0.7));
+  transition: box-shadow 0.2s;
+}
+
+/* FX slots */
+.fx-slot {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 3px 6px 5px;
+  margin-bottom: 4px;
+}
+
+.fx-slot-title {
+  font-size: 9px;
+  letter-spacing: 1.4px;
+  color: var(--led-orange);
+  margin-bottom: 2px;
+}
+
+/* Start overlay */
+.start-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 10, 13, 0.94);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.start-card {
+  text-align: center;
+  padding: 40px;
+}
+
+.start-logo {
+  font-size: 64px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: #e9edf2;
+}
+
+.start-logo span {
+  color: var(--led-orange);
+  font-style: italic;
+  font-size: 40px;
+}
+
+.start-sub {
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: var(--silk-dim);
+  margin: 8px 0 30px;
+}
+
+.start-btn {
+  font-size: 18px;
+  letter-spacing: 2px;
+  padding: 16px 36px;
+  border-radius: 10px;
+  border: 2px solid var(--led-orange);
+  background: transparent;
+  color: var(--led-orange);
+  transition: background 0.15s;
+}
+
+.start-btn:active,
+.start-overlay.starting .start-btn {
+  background: rgba(255, 166, 43, 0.2);
+}
+
+.start-hint {
+  margin-top: 16px;
+  font-size: 11px;
+  color: var(--silk-dim);
+}

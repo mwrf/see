@@ -1,0 +1,68 @@
+/* Portrait phone: single-column scroll, sticky transport + step keys footer. */
+
+body.portrait #app {
+  align-items: stretch;
+}
+
+body.portrait .panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  min-height: 100dvh;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  padding: 8px 10px calc(275px + env(safe-area-inset-bottom));
+}
+
+body.portrait .panel-header { order: -3; }
+body.portrait .area-lcd { order: -2; position: sticky; top: 4px; z-index: 5; }
+body.portrait .area-osc { order: 1; }
+body.portrait .area-filter { order: 2; }
+body.portrait .area-mod { order: 3; }
+body.portrait .area-amp { order: 4; }
+body.portrait .area-fx { order: 5; }
+body.portrait .area-valve { order: 6; }
+body.portrait .area-master { order: 7; }
+body.portrait .area-ribbon { order: 8; }
+body.portrait .area-seq { order: 9; }
+
+/* fixed footer: transport + parts + steps always reachable as one unit */
+body.portrait .panel-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  background: #262e39;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.55);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body.portrait .panel-footer .panel-section {
+  background: none;
+  border: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+body.portrait .stepkey-grid {
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+}
+
+body.portrait .stepkey { min-height: 38px; }
+body.portrait .pbtn-part { min-width: 32px; min-height: 32px; padding: 2px 3px; flex: 1 1 0; }
+body.portrait .part-row { flex-wrap: nowrap; gap: 3px; }
+body.portrait .part-row + .part-row { margin-top: 3px; }
+body.portrait .section-title { display: none; }
+body.portrait .bar-row { margin-bottom: 2px; }
+body.portrait .knob-md .knob-dial { width: 48px; height: 48px; }
+body.portrait .knob-sm .knob-dial { width: 42px; height: 42px; }
+body.portrait .knob-lg .knob-dial { width: 58px; height: 58px; }
+body.portrait .panel-footer .pbtn-big { min-height: 34px; padding: 4px 10px; }

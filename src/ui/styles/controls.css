@@ -1,0 +1,220 @@
+/* Knobs, buttons, LEDs, step keys, ribbon, slider. */
+
+/* ---- knobs ---- */
+.knob {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  touch-action: none;
+}
+
+.knob-dial {
+  position: relative;
+  border-radius: 50%;
+  background: var(--knob-ring);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  display: grid;
+  place-items: center;
+  outline: none;
+}
+
+.knob-dial:focus-visible {
+  box-shadow: 0 0 0 2px var(--led-orange);
+}
+
+.knob-md .knob-dial { width: 44px; height: 44px; }
+.knob-lg .knob-dial { width: 56px; height: 56px; }
+.knob-sm .knob-dial { width: 36px; height: 36px; }
+
+.knob-cap {
+  width: 82%;
+  height: 82%;
+  border-radius: 50%;
+  background: var(--knob-cap);
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.7), inset 0 2px 3px rgba(255, 255, 255, 0.12);
+  position: relative;
+}
+
+.knob-pointer {
+  position: absolute;
+  top: 6%;
+  left: 50%;
+  width: 3px;
+  height: 34%;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: var(--pointer);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+}
+
+.knob-label {
+  font-size: 8.5px;
+  letter-spacing: 0.8px;
+  color: var(--silk);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.knob-disabled { opacity: 0.28; pointer-events: none; }
+.knob-active .knob-cap { box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.7), 0 0 8px rgba(255, 166, 43, 0.5); }
+
+/* ---- buttons ---- */
+.pbtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: var(--btn-face);
+  color: var(--silk);
+  border: 1px solid var(--btn-edge);
+  border-radius: 5px;
+  padding: 7px 10px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  touch-action: none;
+  min-height: 30px;
+}
+
+.pbtn:active,
+.pbtn-active {
+  background: var(--btn-face-active);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+  transform: translateY(1px);
+}
+
+.pbtn-big {
+  min-width: 54px;
+  min-height: 44px;
+  font-size: 15px;
+}
+
+.pbtn-sm { padding: 5px 8px; font-size: 9px; min-height: 26px; }
+.pbtn-muted .pbtn-label { opacity: 0.35; text-decoration: line-through; }
+.pbtn-disabled { opacity: 0.3; pointer-events: none; }
+.pbtn-write { border-color: #6b4a17; }
+.pbtn-rec { color: #ff8f86; }
+.pbtn-play { color: #9defa8; }
+
+.pbtn-led {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #3a1210;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.8);
+  flex: none;
+}
+
+.pbtn-led.led-on.led-red { background: var(--led-red); box-shadow: 0 0 7px var(--led-red); }
+.pbtn-led.led-on.led-green { background: var(--led-green); box-shadow: 0 0 7px var(--led-green); }
+.pbtn-led.led-on.led-orange { background: var(--led-orange); box-shadow: 0 0 7px var(--led-orange); }
+
+/* ---- part buttons ---- */
+.part-row { display: flex; gap: 5px; flex-wrap: wrap; }
+.pbtn-part { flex: 1 1 auto; min-width: 46px; flex-direction: column; gap: 2px; padding: 4px 6px; }
+
+/* ---- step keys ---- */
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.bar-label { font-size: 10px; letter-spacing: 1.2px; color: var(--silk-dim); }
+
+.stepkey-grid {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 6px;
+}
+
+.stepkey {
+  flex-direction: column;
+  gap: 4px;
+  min-height: 52px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #e8e6df 0%, #cfccc2 60%, #b8b4a8 100%);
+  color: #33322d;
+  border: 1px solid #7f7c72;
+  font-weight: 700;
+}
+
+.stepkey:active { background: linear-gradient(180deg, #cfccc2, #a8a498); }
+.stepkey-beat { background: linear-gradient(180deg, #f4f2ec 0%, #dedbd2 60%, #c6c2b6 100%); }
+.stepkey-off-range { opacity: 0.25; pointer-events: none; }
+
+.stepkey .pbtn-led { width: 9px; height: 9px; background: #4a1512; }
+
+.stepkey-playhead {
+  outline: 2px solid var(--led-red);
+  outline-offset: -2px;
+  box-shadow: 0 0 10px rgba(255, 59, 47, 0.6);
+}
+
+/* ---- ribbon / slider ---- */
+.ribbon-strip {
+  position: relative;
+  height: 44px;
+  flex: 1;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #16181c, #23262c 50%, #16181c);
+  border: 1px solid #0c0e11;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7);
+  touch-action: none;
+  overflow: hidden;
+}
+
+.ribbon-hint {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: rgba(216, 222, 230, 0.35);
+  pointer-events: none;
+}
+
+.ribbon-cursor {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  margin-left: -1.5px;
+  left: 50%;
+  background: var(--led-orange);
+  opacity: 0;
+}
+
+.ribbon-cursor.on { opacity: 1; box-shadow: 0 0 10px var(--led-orange); }
+
+.sec-ribbon .section-body { flex-direction: row; align-items: stretch; }
+
+.arp-slider-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+}
+
+.arp-slider {
+  width: 90px;
+  accent-color: var(--led-orange);
+  touch-action: none;
+}
+
+/* ---- transport ---- */
+.transport-body {
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* ---- rows ---- */
+.toggle-row,
+.seq-row { gap: 5px; }
+.fx-row { align-items: center; }

@@ -1,0 +1,45 @@
+/* Theme variables — EMX-1 blue-grey faceplate with red/orange accents. */
+
+:root {
+  --panel-scale: 1;
+  --panel-bg: linear-gradient(160deg, #4a5a6e 0%, #3c4a5c 45%, #35414f 100%);
+  --panel-edge: #232c36;
+  --section-bg: rgba(0, 0, 0, 0.14);
+  --section-border: rgba(255, 255, 255, 0.08);
+  --silk: #d8dee6;
+  --silk-dim: #9aa6b2;
+  --knob-cap: radial-gradient(circle at 34% 30%, #4c4f55, #26282c 65%, #17181b);
+  --knob-ring: #191b1f;
+  --pointer: #e8e4da;
+  --btn-face: linear-gradient(180deg, #3a4048 0%, #2b3037 55%, #22262c 100%);
+  --btn-face-active: linear-gradient(180deg, #2b3037, #1b1f24);
+  --btn-edge: #14171b;
+  --led-red: #ff3b2f;
+  --led-green: #46e05a;
+  --led-orange: #ffa62b;
+  --lcd-bezel: #1a1d21;
+  --accent-red: #c93b2e;
+  --font-panel: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #14181d;
+  font-family: var(--font-panel);
+  color: var(--silk);
+  overscroll-behavior: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
