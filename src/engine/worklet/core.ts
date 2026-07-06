@@ -20,6 +20,7 @@ import {
   createDefaultPattern,
   DRUM_PART_IDS,
   STEPS_PER_BAR,
+  STEPS_PER_QUARTER,
   stepsForPattern,
   SYNTH_PART_IDS,
 } from '../../shared/model';
@@ -76,6 +77,14 @@ export class EmxCore {
 
   // live keyboard state
   private heldNotes = new Map<PartId, number>();
+  /** realtime-record hold tracking: measure how long each key is held */
+  private recHold = new Map<PartId, { step: number; startSample: number }>();
+
+  // metronome (clicks while recording)
+  private metronome = false;
+  private clickRemaining = 0;
+  private clickPhase = 0;
+  private clickFreq = 880;
 
   // ribbon arpeggiator
   private ribbonPos: number | null = null;
@@ -157,6 +166,9 @@ export class EmxCore {
         break;
       case 'NOTE_ON':
         this.noteOn(msg.partId, msg.note);
+        break;
+      case 'SET_METRONOME':
+        this.metronome = msg.on;
         break;
       case 'NOTE_OFF':
         this.noteOff(msg.partId);
@@ -287,6 +299,8 @@ export class EmxCore {
     // effective-params overlay — make sure it exists now
     this.refreshEffectiveParams();
     const gate = this.playing ? Math.floor(this.clock.samplesPerStep * 0.95) : this.sr * 4;
+    // a re-strike of a still-held part finalizes the previous note's gate first
+    this.finishRecHold(partId);
     this.triggerPart(partId, note, gate, false, 0);
     // realtime record: quantize to nearest step
     if (this.recording && this.playing) {
@@ -295,14 +309,33 @@ export class EmxCore {
       const part = this.getPart(partId);
       if (part) {
         const data: Step = { on: true, note, gate: 0.75 };
-        part.steps[step] = (SYNTH_PART_IDS as string[]).includes(partId) ? data : ({ on: true } as Step);
+        const isSynth = (SYNTH_PART_IDS as string[]).includes(partId);
+        part.steps[step] = isSynth ? data : ({ on: true } as Step);
         this.post({ t: 'RECORDED', partId, step, data: part.steps[step] as Step });
+        // synth parts: measure the hold so note-off can record the real gate
+        if (isSynth) this.recHold.set(partId, { step, startSample: this.clock.position });
       }
     }
   }
 
+  /** Finalize a recorded note's gate from how long the key was held (like hardware). */
+  private finishRecHold(partId: PartId): void {
+    const hold = this.recHold.get(partId);
+    if (!hold) return;
+    this.recHold.delete(partId);
+    if (!this.recording || !this.playing) return;
+    const part = this.getPart(partId);
+    const st = part?.steps[hold.step] as Step | undefined;
+    if (!st || !st.on) return;
+    const heldSamples = Math.max(0, this.clock.position - hold.startSample);
+    const gate = clamp(heldSamples / this.clock.samplesPerStep, 0.25, 8);
+    st.gate = Math.round(gate * 20) / 20; // 0.05 resolution for stable serialization
+    this.post({ t: 'RECORDED', partId, step: hold.step, data: { ...st } });
+  }
+
   private noteOff(partId: PartId): void {
     this.heldNotes.delete(partId);
+    this.finishRecHold(partId);
     const sv = this.synthVoices.get(partId as SynthPartId);
     if (sv) sv.noteOff();
   }
@@ -530,6 +563,16 @@ export class EmxCore {
       for (const b of boundaries) {
         if (b.wrapped) this.onPatternEnd();
         this.scheduleStep(b.step % this.clock.totalSteps, b.time);
+        // metronome: click on each quarter note while recording
+        if (this.metronome && this.recording) {
+          const step = b.step % this.clock.totalSteps;
+          const spq = STEPS_PER_QUARTER[this.pattern.beat];
+          if (step % spq === 0) {
+            this.clickRemaining = Math.floor(this.sr * 0.015);
+            this.clickPhase = 0;
+            this.clickFreq = step === 0 ? 1320 : 880;
+          }
+        }
         const step = b.step % this.clock.totalSteps;
         if (step !== this.lastReportedStep) {
           this.lastReportedStep = step;
@@ -610,6 +653,17 @@ export class EmxCore {
 
     // valve + master
     this.valve.process(this.busDryL, this.busDryR, 0, n, this.valveGain);
+    // metronome click bypasses FX/valve, straight onto the master bus
+    if (this.clickRemaining > 0) {
+      const total = Math.floor(this.sr * 0.015);
+      for (let i = 0; i < n && this.clickRemaining > 0; i++, this.clickRemaining--) {
+        const env = this.clickRemaining / total;
+        this.clickPhase += (2 * Math.PI * this.clickFreq) / this.sr;
+        const c = Math.sin(this.clickPhase) * env * 0.28;
+        this.busDryL[i] += c;
+        this.busDryR[i] += c;
+      }
+    }
     const master = mapLevel(this.masterVolume) * 1.4;
     let peakL = 0;
     let peakR = 0;

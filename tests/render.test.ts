@@ -173,6 +173,56 @@ describe('EmxCore end-to-end', () => {
     expect(rec[0].t === 'RECORDED' && rec[0].step).toBe(0); // 0.4 steps rounds to 0
   });
 
+  it('keyboard recording captures the held gate length on note-off', () => {
+    const p = createDefaultPattern();
+    p.tempo = 120;
+    core.handle({ t: 'SET_PATTERN', pattern: p });
+    core.handle({ t: 'TRANSPORT', action: 'play' });
+    core.handle({ t: 'TRANSPORT', action: 'recOn' });
+    core.handle({ t: 'NOTE_ON', partId: 'S1', note: 52 });
+    // hold for ~2 steps
+    const sps = (SR * 60) / (120 * 4);
+    renderSeconds(core, (sps * 2) / SR);
+    core.handle({ t: 'NOTE_OFF', partId: 'S1' });
+    renderSeconds(core, 0.05);
+    const rec = messages.filter((m) => m.t === 'RECORDED' && m.partId === 'S1');
+    expect(rec.length).toBeGreaterThanOrEqual(2); // initial write + gate update
+    const last = rec[rec.length - 1];
+    if (last.t !== 'RECORDED') throw new Error('unreachable');
+    const step = last.data as { on: boolean; note: number; gate: number };
+    expect(step.on).toBe(true);
+    expect(step.note).toBe(52);
+    expect(step.gate).toBeGreaterThan(1.6);
+    expect(step.gate).toBeLessThan(2.4);
+  });
+
+  it('metronome clicks only while recording and playing', () => {
+    const p = createDefaultPattern(); // empty pattern — only the click can sound
+    p.tempo = 120;
+    core.handle({ t: 'SET_PATTERN', pattern: p });
+    core.handle({ t: 'SET_METRONOME', on: true });
+
+    core.handle({ t: 'TRANSPORT', action: 'play' });
+    const { l: noRec } = renderSeconds(core, 1.0);
+    expect(Math.max(...noRec.map(Math.abs))).toBe(0);
+
+    core.handle({ t: 'TRANSPORT', action: 'recOn' });
+    const { l: withRec } = renderSeconds(core, 1.0);
+    expect(Math.max(...withRec.map(Math.abs))).toBeGreaterThan(0.1);
+    // clicks land on quarter notes: 0.5s apart at 120bpm
+    const onsets = findOnsets(withRec, 0.05);
+    expect(onsets.length).toBeGreaterThanOrEqual(2);
+    const gap = onsets[1] - onsets[0];
+    expect(Math.abs(gap - SR * 0.5)).toBeLessThan(BLOCK * 3);
+
+    core.handle({ t: 'SET_METRONOME', on: false });
+    const { l: off } = renderSeconds(core, 0.6);
+    // a click scheduled right at the previous segment's boundary may spill its
+    // ~15ms tail into this render — skip it before asserting silence
+    const tail = off.subarray(Math.floor(SR * 0.05));
+    expect(Math.max(...tail.map(Math.abs))).toBeLessThan(0.001);
+  });
+
   it('pattern switch is quantized to pattern end', () => {
     const p1 = createDefaultPattern('ONE');
     p1.tempo = 240;

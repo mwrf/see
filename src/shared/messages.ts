@@ -19,6 +19,7 @@ export type ToEngine =
   | { t: 'SET_TEMPO'; bpm: number }
   | { t: 'SET_SWING'; value: number }
   | { t: 'TRANSPORT'; action: TransportAction }
+  | { t: 'SET_METRONOME'; on: boolean }
   | { t: 'NOTE_ON'; partId: PartId; note: number }
   | { t: 'NOTE_OFF'; partId: PartId }
   | { t: 'TRIG'; partId: PartId }

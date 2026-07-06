@@ -80,6 +80,21 @@ export function toggleRec(): void {
   });
 }
 
+let metronomeOn = false;
+
+export function toggleMetronome(): void {
+  metronomeOn = !metronomeOn;
+  send({ t: 'SET_METRONOME', on: metronomeOn });
+  store.update(['transport', 'lcd'], (s) => {
+    s.lcd.line1 = 'METRONOME';
+    s.lcd.line2 = metronomeOn ? 'ON (REC)' : 'OFF';
+  });
+}
+
+export function isMetronomeOn(): boolean {
+  return metronomeOn;
+}
+
 const tapTimes: number[] = [];
 
 export function tapTempo(): void {
