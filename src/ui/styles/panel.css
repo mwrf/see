@@ -42,9 +42,12 @@ body.landscape .panel {
     'lcd     osc     filter mod    amp'
     'seq     osc     filter mod    amp'
     'seq     fx      fx     valve  master'
-    'ribbon  fx      fx     valve  master'
+    'song    fx      fx     valve  master'
+    'ribbon  ribbon  ribbon ribbon ribbon'
     'footer  footer  footer footer footer';
 }
+
+.area-song { grid-area: song; }
 
 .area-footer { grid-area: footer; }
 

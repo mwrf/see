@@ -111,6 +111,33 @@ try {
   await page.mouse.up();
   console.log('knob drag ok');
 
+  // keyboard mode: play a note live on S1
+  await page.locator('.pbtn-part', { hasText: 'S1' }).click();
+  await page.locator('.pbtn-sm', { hasText: 'KEYBOARD' }).click();
+  await keys.nth(7).click();
+  await page.locator('.pbtn-sm', { hasText: 'STEP' }).first().click();
+  console.log('keyboard mode ok');
+
+  // step editor: toggle a step on S1, long-press it, edit note
+  await keys.nth(0).click();
+  const key0 = await keys.nth(0).boundingBox();
+  await page.mouse.move(key0.x + key0.width / 2, key0.y + key0.height / 2);
+  await page.mouse.down();
+  await wait(700);
+  await page.mouse.up();
+  await page.waitForSelector('.step-editor', { timeout: 3000 });
+  await page.click('.step-editor [data-a="note+"]');
+  const noteVal = await page.textContent('.step-editor [data-v="note"]');
+  await page.click('.step-editor [data-a="close"]');
+  console.log('step editor ok, note now', noteVal);
+
+  // song mode: append two events and check the info line
+  await page.locator('.sec-song .pbtn-sm', { hasText: '+ PTN' }).click();
+  await page.locator('.sec-song .pbtn-sm', { hasText: '+ PTN' }).click();
+  const songInfo = await page.textContent('.song-info');
+  if (!songInfo.includes('2 events')) throw new Error(`song info wrong: ${songInfo}`);
+  console.log('song mode ok:', songInfo);
+
   await page.locator('.pbtn-big', { hasText: '■' }).click();
   await page.screenshot({ path: `${shotsDir}desktop-landscape.png` });
   await page.close();

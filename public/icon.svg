@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#3c4a5c"/>
+  <rect x="64" y="96" width="384" height="120" rx="16" fill="#b3d24d"/>
+  <text x="256" y="182" text-anchor="middle" font-family="Arial, sans-serif" font-size="86" font-weight="900" fill="#1d2b12">EMX</text>
+  <g fill="#e8e6df">
+    <rect x="64" y="280" width="80" height="72" rx="10"/>
+    <rect x="165" y="280" width="80" height="72" rx="10"/>
+    <rect x="266" y="280" width="80" height="72" rx="10"/>
+    <rect x="367" y="280" width="80" height="72" rx="10"/>
+    <rect x="64" y="376" width="80" height="72" rx="10"/>
+    <rect x="165" y="376" width="80" height="72" rx="10"/>
+    <rect x="266" y="376" width="80" height="72" rx="10"/>
+    <rect x="367" y="376" width="80" height="72" rx="10"/>
+  </g>
+  <circle cx="104" cy="300" r="9" fill="#ff3b2f"/>
+  <circle cx="306" cy="300" r="9" fill="#ff3b2f"/>
+  <circle cx="205" cy="396" r="9" fill="#ff3b2f"/>
+  <circle cx="407" cy="396" r="9" fill="#ff3b2f"/>
+</svg>

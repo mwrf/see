@@ -20,6 +20,7 @@ import { store } from '../../state/store';
 import type { PartId } from '../../shared/model';
 import { ALL_PART_IDS, STEPS_PER_BAR, stepsForPattern } from '../../shared/model';
 import { createButton, type PanelButton } from '../controls/button';
+import { openStepEditor } from '../step-editor';
 import { section } from './helpers';
 
 export function createStepKeys(): HTMLElement {
@@ -45,6 +46,9 @@ export function createStepKeys(): HTMLElement {
       className: `stepkey ${isUpbeat ? 'stepkey-beat' : ''}`,
       onPress: () => onKeyPress(i),
       onRelease: () => onKeyRelease(),
+      onLongPress: () => onKeyLongPress(i),
+      // keyboard mode needs the note to start on pointer-down
+      deferPress: () => store.get().stepKeyMode !== 'keyboard',
     });
     keys.push(key);
     grid.appendChild(key.el);
@@ -72,6 +76,20 @@ export function createStepKeys(): HTMLElement {
 
   function onKeyRelease(): void {
     if (store.get().stepKeyMode === 'keyboard') keyboardNoteOff();
+  }
+
+  /** Long-press on a synth-part step opens the note/gate editor. */
+  function onKeyLongPress(i: number): void {
+    const s = store.get();
+    if (s.stepKeyMode !== 'trig' || !isSynthPart(s.selectedPart)) {
+      onKeyPress(i);
+      return;
+    }
+    const spb = STEPS_PER_BAR[s.pattern.beat];
+    const perPage = Math.min(16, spb);
+    const stepIdx = s.page * perPage + i;
+    if (stepIdx >= stepsForPattern(s.pattern)) return;
+    openStepEditor(stepIdx);
   }
 
   function stepOnAt(idx: number): boolean {

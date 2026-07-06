@@ -218,3 +218,74 @@
 .toggle-row,
 .seq-row { gap: 5px; }
 .fx-row { align-items: center; }
+
+/* ---- song ---- */
+.song-info {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--silk-dim);
+  padding: 2px 2px 0;
+}
+
+/* ---- step editor popover ---- */
+.step-editor {
+  position: fixed;
+  left: 50%;
+  bottom: 30%;
+  transform: translateX(-50%);
+  z-index: 50;
+  background: #1d2229;
+  border: 1px solid #0d0f13;
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+  padding: 12px 16px;
+  min-width: 220px;
+  color: var(--silk);
+}
+
+.step-editor-title {
+  font-size: 11px;
+  letter-spacing: 1.6px;
+  color: var(--led-orange);
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.step-editor-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.step-editor-row button {
+  width: 42px;
+  height: 38px;
+  font-size: 18px;
+  border-radius: 6px;
+  border: 1px solid var(--btn-edge);
+  background: var(--btn-face);
+  color: var(--silk);
+}
+
+.step-editor-val {
+  min-width: 56px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #b3d24d;
+}
+
+.step-editor-lbl { font-size: 9px; letter-spacing: 1.4px; color: var(--silk-dim); }
+
+.step-editor-close {
+  width: 100%;
+  margin-top: 4px;
+  padding: 9px;
+  border-radius: 6px;
+  border: 1px solid #6b4a17;
+  background: var(--btn-face);
+  color: var(--led-orange);
+  letter-spacing: 2px;
+  font-size: 11px;
+}

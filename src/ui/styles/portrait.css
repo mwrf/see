@@ -27,6 +27,7 @@ body.portrait .area-valve { order: 6; }
 body.portrait .area-master { order: 7; }
 body.portrait .area-ribbon { order: 8; }
 body.portrait .area-seq { order: 9; }
+body.portrait .area-song { order: 10; }
 
 /* fixed footer: transport + parts + steps always reachable as one unit */
 body.portrait .panel-footer {

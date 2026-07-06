@@ -16,6 +16,7 @@ import {
 import { createPartSelect } from './sections/part-select';
 import { createRibbonSection } from './sections/ribbon';
 import { createSeqSettings } from './sections/seq-settings';
+import { createSongSection } from './sections/song';
 import { createStepKeys } from './sections/step-keys';
 import { createTransport } from './sections/transport';
 
@@ -43,6 +44,7 @@ export function mountPanel(root: HTMLElement): void {
     ['area-fx', createFxSection()],
     ['area-valve', createValveSection()],
     ['area-master', createMasterSection()],
+    ['area-song', createSongSection()],
     ['area-ribbon', createRibbonSection()],
   ];
 

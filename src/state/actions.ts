@@ -460,3 +460,49 @@ export function setSong(song: Song | null, slot: number): void {
     s.songSlot = slot;
   });
 }
+
+export async function loadSong(slot: number): Promise<void> {
+  const { readSongSlot } = await import('../data/persist');
+  const song = await readSongSlot(slot);
+  store.update(['ui', 'song', 'lcd'], (s) => {
+    s.songSlot = slot;
+    s.song = song ?? { name: `SONG ${slot + 1}`, tempo: 0, events: [] };
+    s.lcd.line1 = formatSongSlot(slot);
+    s.lcd.line2 = song ? `${song.events.length} EVENTS` : 'EMPTY';
+  });
+  if (store.get().mode === 'song') await syncSongToEngine();
+}
+
+export async function saveSong(): Promise<void> {
+  const s = store.get();
+  if (!s.song) return;
+  const { writeSongSlot } = await import('../data/persist');
+  await writeSongSlot(s.songSlot, s.song);
+  setLcd('WRITE', formatSongSlot(s.songSlot));
+}
+
+/** Append the current pattern slot as the next song event. */
+export async function addSongEvent(): Promise<void> {
+  const s = store.get();
+  if (!s.song) {
+    setSong({ name: `SONG ${s.songSlot + 1}`, tempo: 0, events: [] }, s.songSlot);
+  }
+  const song = store.get().song!;
+  song.events.push({ patternSlot: s.patternSlot, mutes: [] });
+  store.update(['song', 'lcd'], (st) => {
+    st.lcd.line1 = `POS ${song.events.length}`;
+    st.lcd.line2 = `PTN ${formatSlot(s.patternSlot)}`;
+  });
+  if (s.mode === 'song') await syncSongToEngine();
+}
+
+export async function removeSongEvent(): Promise<void> {
+  const s = store.get();
+  if (!s.song || s.song.events.length === 0) return;
+  s.song.events.pop();
+  store.update(['song', 'lcd'], (st) => {
+    st.lcd.line1 = 'EVENT DELETED';
+    st.lcd.line2 = `${s.song!.events.length} LEFT`;
+  });
+  if (s.mode === 'song') await syncSongToEngine();
+}
