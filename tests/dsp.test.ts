@@ -27,7 +27,7 @@ describe('oscillator algorithms', () => {
       const osc = new Oscillator(SR, 42);
       const buf = new Float32Array(SR / 2);
       for (let i = 0; i < buf.length; i++) {
-        buf[i] = osc.sample(type, 110, 64, 64, SR);
+        buf[i] = osc.sample(type, 110, 0, 64, 64, SR);
       }
       assertFinite(buf, `osc type ${type}`);
       const level = rms(buf.subarray(1000));
@@ -41,7 +41,8 @@ describe('oscillator algorithms', () => {
   it('waveform osc has its fundamental at the requested pitch', () => {
     const osc = new Oscillator(SR, 1);
     const buf = new Float32Array(SR);
-    for (let i = 0; i < buf.length; i++) buf[i] = osc.sample(0, 220, 0, 0, SR);
+    // WAVE FORM type, saw wave, no morph, osc2 pitch centered (silent osc2)
+    for (let i = 0; i < buf.length; i++) buf[i] = osc.sample(0, 220, 0, 0, 64, SR);
     const at220 = goertzelMag(buf, 220, SR);
     const at311 = goertzelMag(buf, 311, SR);
     expect(at220).toBeGreaterThan(at311 * 5);
@@ -53,7 +54,7 @@ describe('oscillator algorithms', () => {
     for (let type = 0; type < 16; type++) {
       const osc = new Oscillator(SR, 7);
       const buf = new Float32Array(SR / 4);
-      for (let i = 0; i < buf.length; i++) buf[i] = osc.sample(type, 110, 96, 96, SR);
+      for (let i = 0; i < buf.length; i++) buf[i] = osc.sample(type, 110, 0, 96, 96, SR);
       const mags = freqs.map((f) => goertzelMag(buf, f, SR));
       const total = mags.reduce((a, b) => a + b, 0) || 1;
       spectra.push(mags.map((m) => m / total));
@@ -128,8 +129,8 @@ describe('envelopes & LFO', () => {
     expect(v).toBeLessThan(0.01);
   });
 
-  it('LFO waves stay in range and S&H changes per cycle', () => {
-    for (let wave = 0; wave < 6; wave++) {
+  it('LFO waves stay in range and cyclic waves oscillate', () => {
+    for (let wave = 0; wave < 5; wave++) {
       const lfo = new Lfo(5);
       let min = Infinity;
       let max = -Infinity;
@@ -140,8 +141,23 @@ describe('envelopes & LFO', () => {
       }
       expect(min).toBeGreaterThanOrEqual(-1.01);
       expect(max).toBeLessThanOrEqual(1.01);
-      if (wave < 5) expect(max - min).toBeGreaterThan(0.5);
+      if (wave < 4) expect(max - min).toBeGreaterThan(0.5);
     }
+  });
+
+  it('trigger reset applies to all mod types except Tri (free-running)', () => {
+    // saw resets to phase 0 (value 1) on sync
+    const saw = new Lfo(1);
+    for (let i = 0; i < 1000; i++) saw.next(50, 0, SR);
+    saw.sync(0);
+    expect(saw.next(50, 0, SR)).toBeGreaterThan(0.99);
+    // tri ignores sync
+    const tri = new Lfo(1);
+    for (let i = 0; i < 300; i++) tri.next(50, 2, SR);
+    const before = tri.next(50, 2, SR);
+    tri.sync(2);
+    const after = tri.next(50, 2, SR);
+    expect(Math.abs(after - before)).toBeLessThan(0.05);
   });
 });
 

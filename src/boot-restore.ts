@@ -28,4 +28,5 @@ export async function restoreSession(engine: Engine): Promise<void> {
   const g = store.get().global;
   engine.send({ t: 'SET_PARAM', target: 'MASTER', paramId: 'masterVolume', value: g.masterVolume });
   engine.send({ t: 'SET_PARAM', target: 'MASTER', paramId: 'valveGain', value: g.valveGain });
+  engine.send({ t: 'SET_PARAM', target: 'MASTER', paramId: 'masterTune', value: 64 + ((g.masterTune ?? 0) / 50) * 63 });
 }

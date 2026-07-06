@@ -31,8 +31,10 @@ export function attachEngineBridge(engine: Engine): void {
             s.pattern.synths[msg.partId as SynthPartId].steps[msg.step] = msg.data as Step;
           } else if ((DRUM_PART_IDS as string[]).includes(msg.partId)) {
             s.pattern.drums[msg.partId as DrumPartId].steps[msg.step] = { on: (msg.data as Step).on };
-          } else {
-            s.pattern.accent.steps[msg.step] = { on: (msg.data as Step).on };
+          } else if (msg.partId === 'ACCD') {
+            s.pattern.accentDrum.steps[msg.step] = { on: (msg.data as Step).on };
+          } else if (msg.partId === 'ACCS') {
+            s.pattern.accentSynth.steps[msg.step] = { on: (msg.data as Step).on };
           }
           s.patternDirty = true;
         });
@@ -61,6 +63,16 @@ export function attachEngineBridge(engine: Engine): void {
           s.lcd.line1 = 'SONG';
           s.lcd.line2 = 'END';
         });
+        // NEXT SONG chaining (manual p.71)
+        if (msg.nextSong >= 0) {
+          void (async () => {
+            const { loadSong, play, syncSongToEngine } = await import('./actions');
+            await loadSong(msg.nextSong);
+            await syncSongToEngine();
+            engine.send({ t: 'MODE', mode: 'song' });
+            play();
+          })();
+        }
         break;
       case 'LEVELS':
         store.update(['levels'], (s) => {

@@ -8,27 +8,37 @@ at boot.
 
 ## Features
 
-**Sound engine** (single AudioWorklet, sample-accurate)
-- 5 synth parts with 16 MMT-style oscillator algorithms: Waveform, Dual,
-  Unison, Sync, Ring, X-Mod, VPM, Noise, PCM (76 single-cycle waves), Chord,
-  Comb, Formant, PWM, Super-7, Additive, Mod-Noise
-- 9 drum parts drawing from a 207-wave procedural drum ROM (kicks, snares,
-  claps, hats, cymbals, toms, percussion, hits)
-- Per part: multimode filter (LPF/HPF/BPF/BPF+) with resonance + EG, amp EG
-  (gate/decay), level, pan, roll, accent, glide (synths), LFO with 6 waves,
-  5 destinations, BPM sync and key sync
-- 3 effect processors × 16 types (reverb, short/BPM/mod delay, grain shifter,
-  chorus/flanger, phaser, ring mod, talk mod, pitch shifter, compressor,
-  distortion, decimator, EQ, LPF, HPF) with chain routing 1→2→3
+**Sound engine** (single AudioWorklet, sample-accurate, per the owner's manual)
+- 5 monophonic synth parts with the hardware's 16 MMT oscillator algorithms —
+  Wave Form, Dual Osc, Chord Osc, Unison, Ring Mod, Osc Sync, Cross Mod, VPM,
+  Wave Shape, Additive, Comb Osc, Formant, Noise, PCM+Comb, PCM+WS, and
+  Noiz+Comb (standing in for Audio In+Comb) — each with its WAVE selector and
+  the manual's OSC EDIT1/EDIT2 semantics
+- 9 drum parts (1–5, 6A/6B, 7A/7B with hardware exclusive pairs) from a
+  207-wave procedural drum ROM; nonlinear ±2-octave pitch table
+- Synth filter: LPF/HPF/BPF/BPF+ with resonance, bipolar EG INT, and DRIVE
+- Amp EG (gate/decay), level, pan, roll (×2/×3/×4 roll types), per-part
+  ACCENT SW and SWING SW, glide with true legato (overlapping gates don't
+  retrigger), synth tune ±50 cents, master tune
+- Modulation: Saw/Squ/Tri/S&H/Env (triangle free-runs; others reset per
+  trigger), bipolar depth, BPM sync, hardware destination sets
+  (drums: pitch/amp/pan; synths: + osc edit 1/2, cutoff)
+- 3 effect processors × 16 types in manual order with manual EDIT semantics
+  (BPM-synced note-value delays, grain shifter speed table, ±2400-cent pitch
+  shifter, etc.) with chain routing
 - Valve Force tube stage emulation (2× oversampled asymmetric waveshaper)
 
 **Sequencer**
-- 256 pattern slots (A.01–D.64), 1–8 bars, beat modes 16/32/8-tri/16-tri
-- Swing 50–75 %, accent part, roll retrigger
-- Motion sequences (knob automation) with SMOOTH / TRIG HOLD playback
-- Realtime + quantized recording, quantized next-pattern switching
-- Song mode: 64 songs of chained pattern events
-- Ribbon + slider arpeggiator (scale-aware for synth parts, roll for drums)
+- 256 pattern slots (A.01–D.64), 1–8 bars, beat 16/32/8Tri/16Tri with
+  hardware step grids (16/16/12/12 per measure), LAST STEP odd meters
+- Swing 50–75 % on even steps, two accent parts (drum + synth)
+- Motion sequences with SMOOTH / TRIG HOLD (switch params force TRIG HOLD)
+- Realtime recording with held-gate capture, metronome (off/rec/on),
+  erase-hold, reset, live transpose ±24, multi-part solo + mute
+- Pattern ops: clear part/pattern, copy part, shift note, move data
+- Song mode: 64 songs with per-position note offset and next-song chaining
+- Arpeggiator: ribbon = gate/drum resolution, slider = pitch across the
+  31 hardware scales with per-pattern center note
 - Tempo 20–300 BPM with tap tempo
 
 **Data**

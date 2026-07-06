@@ -92,10 +92,10 @@ describe('SequencerClock', () => {
     });
   });
 
-  it('steps per bar match the hardware grids', () => {
+  it('steps per bar match the hardware grids (manual p.52)', () => {
     expect(STEPS_PER_BAR['16']).toBe(16);
-    expect(STEPS_PER_BAR['32']).toBe(32);
+    expect(STEPS_PER_BAR['32']).toBe(16); // 32nd-note steps, still 16 per measure
     expect(STEPS_PER_BAR['8T']).toBe(12);
-    expect(STEPS_PER_BAR['16T']).toBe(24);
+    expect(STEPS_PER_BAR['16T']).toBe(12);
   });
 });

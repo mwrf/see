@@ -1,10 +1,10 @@
 /**
- * Part select, hardware style: DRUM PART keys 1-5 / 6A / 6B / 7A / 7B,
- * SYNTH PART keys 1-5, and the ACCENT key.
+ * Part select, hardware style: DRUM PART keys 1-5 / 6A / 6B / 7A / 7B + drum
+ * ACCENT, SYNTH PART keys 1-5 + synth ACCENT.
  * Tap = select (and audition). Long-press = mute toggle.
  */
 
-import { isDrumPart, isSynthPart, selectPart, toggleMute } from '../../state/actions';
+import { isDrumPart, isSolo, isSynthPart, selectPart, toggleMute } from '../../state/actions';
 import { store } from '../../state/store';
 import type { PartId } from '../../shared/model';
 import { ALL_PART_IDS, DRUM_PART_IDS, SYNTH_PART_IDS } from '../../shared/model';
@@ -39,10 +39,10 @@ export function createPartSelect(): HTMLElement {
     const btn = createButton({
       label: partLabel(id),
       led: true,
-      className: `pbtn-part ${id === 'ACC' ? 'pbtn-accent' : ''}`,
+      className: `pbtn-part ${id === 'ACCD' || id === 'ACCS' ? 'pbtn-accent' : ''}`,
       onPress: () => selectPart(id),
       onLongPress: () => {
-        if (id !== 'ACC') toggleMute(id);
+        if (id !== 'ACCD' && id !== 'ACCS') toggleMute(id);
       },
     });
     buttons.set(id, btn);
@@ -55,6 +55,7 @@ export function createPartSelect(): HTMLElement {
   const drumRow = document.createElement('div');
   drumRow.className = 'part-row';
   for (const id of DRUM_PART_IDS) drumRow.appendChild(makeButton(id).el);
+  drumRow.appendChild(makeButton('ACCD').el);
   drumGroup.appendChild(drumRow);
 
   const synthGroup = document.createElement('div');
@@ -63,18 +64,20 @@ export function createPartSelect(): HTMLElement {
   const synthRow = document.createElement('div');
   synthRow.className = 'part-row';
   for (const id of SYNTH_PART_IDS) synthRow.appendChild(makeButton(id).el);
-  synthRow.appendChild(makeButton('ACC').el);
+  synthRow.appendChild(makeButton('ACCS').el);
   synthGroup.appendChild(synthRow);
 
   function refresh(): void {
     const s = store.get();
     for (const id of ALL_PART_IDS) {
-      const btn = buttons.get(id)!;
+      const btn = buttons.get(id);
+      if (!btn) continue;
       btn.setLed(s.selectedPart === id, 'red');
       let muted = false;
       if (isSynthPart(id)) muted = s.pattern.synths[id].mute;
       else if (isDrumPart(id)) muted = s.pattern.drums[id].mute;
       btn.el.classList.toggle('pbtn-muted', muted);
+      btn.el.classList.toggle('pbtn-solo', isSolo(id));
     }
   }
 

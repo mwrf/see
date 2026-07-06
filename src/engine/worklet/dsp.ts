@@ -3,7 +3,7 @@
  * Pure TypeScript — no worklet APIs — so everything is unit-testable in Node.
  */
 
-import { clamp, sanitize, TWO_PI } from '../../shared/math';
+import { clamp, sanitize } from '../../shared/math';
 
 /**
  * TPT (zero-delay feedback) state-variable filter, stable at high resonance.
@@ -118,7 +118,11 @@ export class DecayEnv {
   }
 }
 
-/** Part LFO: saw, square, triangle, sine, sample & hold, one-shot envelope. */
+/**
+ * Part modulation LFO — hardware types (manual p.30): Saw, Squ, Tri, S&H, Env.
+ * All types reset phase at each trigger EXCEPT Tri, which free-runs.
+ * Env starts at maximum and decays smoothly (one-shot).
+ */
 export class Lfo {
   private phase = 0;
   private shValue = 0;
@@ -133,18 +137,20 @@ export class Lfo {
     return this.rngState / 4294967296;
   }
 
-  sync(): void {
+  /** Trigger-reset. `wave` decides whether the phase actually resets (Tri free-runs). */
+  sync(wave: number): void {
+    if (wave === 2) return; // Tri does not reset (manual p.30)
     this.phase = 0;
     this.shValue = this.rand() * 2 - 1;
   }
 
-  /** Advance by freq/sr; returns bipolar -1..+1 (env wave returns 1->0 unipolar). */
+  /** Advance by freq/sr; returns bipolar -1..+1 (env returns 1->0 unipolar). */
   next(freqHz: number, wave: number, sr: number): number {
     const prev = this.phase;
     this.phase += freqHz / sr;
     if (this.phase >= 1) {
       this.phase -= Math.floor(this.phase);
-      if (wave === 4) this.shValue = this.rand() * 2 - 1;
+      if (wave === 3) this.shValue = this.rand() * 2 - 1;
     }
     const ph = this.phase;
     switch (wave) {
@@ -153,10 +159,8 @@ export class Lfo {
       case 1:
         return ph < 0.5 ? 1 : -1; // square
       case 2:
-        return ph < 0.5 ? 4 * ph - 1 : 3 - 4 * ph; // triangle
+        return ph < 0.5 ? 4 * ph - 1 : 3 - 4 * ph; // triangle (free-running)
       case 3:
-        return Math.sin(TWO_PI * ph); // sine
-      case 4:
         return this.shValue; // sample & hold
       default: {
         // one-shot decay envelope: falls 1 -> 0 across a single cycle, then stays 0

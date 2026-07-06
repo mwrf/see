@@ -1,7 +1,8 @@
 /**
  * Sequencer / data menu: step-key modes (STEP EDIT / KEYBOARD / PART MUTE /
- * PATTERN SET), octave shift, pattern navigation, motion seq controls, and
- * file export/import. (Tempo / beat / length / write live next to the LCD.)
+ * SOLO / PATTERN SET), octave shift, transpose, pattern navigation, pattern
+ * operations (clear/copy/shift/move), motion seq controls, roll type, last
+ * step, arp scale, and file export/import.
  */
 
 import { exportAll, exportPattern, parseImport, pickFile } from '../../data/file-io';
@@ -14,17 +15,46 @@ import {
 } from '../../data/persist';
 import {
   clearMotion,
+  clearPart,
+  clearPattern,
+  clearSolo,
+  copyPart,
+  cycleArpScale,
   formatSlot,
+  getTranspose,
+  isDrumPart,
+  isSynthPart,
   loadPattern,
+  moveData,
+  renamePattern,
+  setLastStep,
   setLcd,
   setMotionMode,
+  setRollType,
   setStepKeyMode,
+  setTranspose,
+  shiftNotes,
   shiftOctave,
+  toggleProtect,
 } from '../../state/actions';
 import { store, type StepKeyMode } from '../../state/store';
 import { MOTION_MODE_NAMES } from '../../shared/params';
+import type { DrumPartId, PartId, SynthPartId } from '../../shared/model';
+import { DRUM_PART_IDS, SYNTH_PART_IDS } from '../../shared/model';
 import { createButton, type PanelButton } from '../controls/button';
 import { row, section } from './helpers';
+
+function nextPartOf(id: PartId): PartId {
+  if (isSynthPart(id)) {
+    const i = SYNTH_PART_IDS.indexOf(id as SynthPartId);
+    return SYNTH_PART_IDS[(i + 1) % SYNTH_PART_IDS.length];
+  }
+  if (isDrumPart(id)) {
+    const i = DRUM_PART_IDS.indexOf(id as DrumPartId);
+    return DRUM_PART_IDS[(i + 1) % DRUM_PART_IDS.length];
+  }
+  return id;
+}
 
 export function createSeqSettings(): HTMLElement {
   const { el, body } = section('SEQUENCER', 'sec-seq');
@@ -36,10 +66,17 @@ export function createSeqSettings(): HTMLElement {
     ['trig', 'STEP EDIT'],
     ['keyboard', 'KEYBOARD'],
     ['mute', 'PART MUTE'],
+    ['solo', 'SOLO'],
     ['patternSet', 'PATTERN SET'],
   ];
   for (const [mode, label] of modes) {
-    const btn = createButton({ label, led: true, className: 'pbtn-sm', onPress: () => setStepKeyMode(mode) });
+    const btn = createButton({
+      label,
+      led: true,
+      className: 'pbtn-sm',
+      onPress: () => setStepKeyMode(mode),
+      onLongPress: mode === 'solo' ? () => clearSolo() : undefined,
+    });
     modeButtons.set(mode, btn);
     modeRow.appendChild(btn.el);
   }
@@ -48,9 +85,11 @@ export function createSeqSettings(): HTMLElement {
   octRow.append(
     createButton({ label: 'OCT −', className: 'pbtn-sm', onPress: () => shiftOctave(-1) }).el,
     createButton({ label: 'OCT +', className: 'pbtn-sm', onPress: () => shiftOctave(1) }).el,
+    createButton({ label: 'TRANS −', className: 'pbtn-sm', onPress: () => setTranspose(getTranspose() - 1) }).el,
+    createButton({ label: 'TRANS +', className: 'pbtn-sm', onPress: () => setTranspose(getTranspose() + 1) }).el,
   );
 
-  // --- pattern navigation
+  // --- pattern navigation + settings
   const ptnRow = row('seq-row');
   const prevPtn = createButton({
     label: '◀ PTN',
@@ -62,7 +101,75 @@ export function createSeqSettings(): HTMLElement {
     className: 'pbtn-sm',
     onPress: () => void loadPattern(Math.min(255, store.get().patternSlot + 1)),
   });
-  ptnRow.append(prevPtn.el, nextPtn.el);
+  const renameBtn = createButton({
+    label: 'RENAME',
+    className: 'pbtn-sm',
+    onPress: () => {
+      const name = window.prompt('Pattern name (8 chars):', store.get().pattern.name);
+      if (name !== null) renamePattern(name);
+    },
+  });
+  ptnRow.append(prevPtn.el, nextPtn.el, renameBtn.el);
+
+  const setupRow = row('seq-row');
+  const rollBtn = createButton({
+    label: 'ROLL TYPE',
+    className: 'pbtn-sm',
+    onPress: () => {
+      const cur = store.get().pattern.rollType;
+      setRollType(cur >= 4 ? 2 : cur + 1);
+    },
+  });
+  const lastStepDown = createButton({ label: 'LAST −', className: 'pbtn-sm', onPress: () => setLastStep(store.get().pattern.lastStep - 1) });
+  const lastStepUp = createButton({ label: 'LAST +', className: 'pbtn-sm', onPress: () => setLastStep(store.get().pattern.lastStep + 1) });
+  const arpBtn = createButton({ label: 'ARP SCALE', className: 'pbtn-sm', onPress: () => cycleArpScale(1) });
+  setupRow.append(rollBtn.el, lastStepDown.el, lastStepUp.el, arpBtn.el);
+
+  // --- pattern operations (hardware SHIFT functions)
+  const opsRow = row('seq-row');
+  const clearPartBtn = createButton({
+    label: 'CLR PART',
+    className: 'pbtn-sm',
+    onPress: () => clearPart(store.get().selectedPart),
+  });
+  const clearPtnBtn = createButton({
+    label: 'CLR PTN',
+    className: 'pbtn-sm',
+    onLongPress: () => clearPattern(), // long-press to avoid accidents
+    onPress: () => setLcd('CLEAR PTN', 'HOLD TO CLEAR'),
+  });
+  const copyBtn = createButton({
+    label: 'COPY PART',
+    className: 'pbtn-sm',
+    onPress: () => {
+      const s = store.get();
+      // copies the selected part into the next part of the same type
+      const to = nextPartOf(s.selectedPart);
+      if (to !== s.selectedPart) copyPart(s.selectedPart, to);
+    },
+  });
+  opsRow.append(clearPartBtn.el, clearPtnBtn.el, copyBtn.el);
+
+  const opsRow2 = row('seq-row');
+  const shiftDown = createButton({
+    label: 'NOTE −1',
+    className: 'pbtn-sm',
+    onPress: () => {
+      const s = store.get();
+      if (isSynthPart(s.selectedPart)) shiftNotes(s.selectedPart as SynthPartId, -1);
+    },
+  });
+  const shiftUp = createButton({
+    label: 'NOTE +1',
+    className: 'pbtn-sm',
+    onPress: () => {
+      const s = store.get();
+      if (isSynthPart(s.selectedPart)) shiftNotes(s.selectedPart as SynthPartId, 1);
+    },
+  });
+  const moveL = createButton({ label: 'MOVE ◀', className: 'pbtn-sm', onPress: () => moveData(store.get().selectedPart, -1) });
+  const moveR = createButton({ label: 'MOVE ▶', className: 'pbtn-sm', onPress: () => moveData(store.get().selectedPart, 1) });
+  opsRow2.append(shiftDown.el, shiftUp.el, moveL.el, moveR.el);
 
   // --- motion seq
   const motionRow = row('seq-row');
@@ -71,12 +178,11 @@ export function createSeqSettings(): HTMLElement {
     className: 'pbtn-sm',
     onPress: () => {
       const s = store.get();
-      if (s.selectedPart === 'ACC') return;
-      const cur =
-        s.selectedPart in s.pattern.synths
-          ? s.pattern.synths[s.selectedPart as never]['motionMode' as never]
-          : s.pattern.drums[s.selectedPart as never]['motionMode' as never];
-      const next = (Number(cur) === 0 ? 1 : 0) as 0 | 1;
+      if (s.selectedPart === 'ACCD' || s.selectedPart === 'ACCS') return;
+      const cur = isSynthPart(s.selectedPart)
+        ? s.pattern.synths[s.selectedPart as SynthPartId].motionMode
+        : s.pattern.drums[s.selectedPart as DrumPartId].motionMode;
+      const next = (cur === 0 ? 1 : 0) as 0 | 1;
       setMotionMode(s.selectedPart, next);
       setLcd('MOTION MODE', MOTION_MODE_NAMES[next]);
     },
@@ -96,7 +202,8 @@ export function createSeqSettings(): HTMLElement {
       setLcd('MOTION SEQ', idxs.length ? 'CLEARED' : 'EMPTY');
     },
   });
-  motionRow.append(motionModeBtn.el, motionClearBtn.el);
+  const protectBtn = createButton({ label: 'PROTECT', led: true, className: 'pbtn-sm', onPress: () => toggleProtect() });
+  motionRow.append(motionModeBtn.el, motionClearBtn.el, protectBtn.el);
 
   // --- data (export / import)
   const dataRow = row('seq-row');
@@ -128,7 +235,7 @@ export function createSeqSettings(): HTMLElement {
         try {
           const parsed = parseImport(text);
           if (parsed.kind === 'pattern') {
-            store.update(['pattern', 'steps', 'ui', 'lcd'], (s) => {
+            store.update(['pattern', 'steps', 'ui', 'lcd', 'params'], (s) => {
               s.pattern = parsed.pattern;
               s.patternDirty = true;
             });
@@ -148,7 +255,7 @@ export function createSeqSettings(): HTMLElement {
               if (song) await writeSongSlot(i, song);
             }
             await writeGlobal(parsed.file.global);
-            store.update(['ui', 'lcd'], (s) => {
+            store.update(['ui', 'lcd', 'params'], (s) => {
               s.global = parsed.file.global;
             });
             setLcd('IMPORT', 'ALL DATA OK');
@@ -165,10 +272,12 @@ export function createSeqSettings(): HTMLElement {
     const s = store.get();
     for (const [mode, btn] of modeButtons) btn.setLed(s.stepKeyMode === mode, 'red');
     prevPtn.el.title = nextPtn.el.title = `pattern ${formatSlot(s.patternSlot)}`;
+    protectBtn.setLed(s.global.protect, 'orange');
+    rollBtn.el.querySelector('.pbtn-label')!.textContent = `ROLL ×${s.pattern.rollType}`;
   }
   ['ui', 'pattern', 'transport', 'steps'].forEach((t) => store.subscribe(t, refresh));
   refresh();
 
-  body.append(modeRow, octRow, ptnRow, motionRow, dataRow);
+  body.append(modeRow, octRow, ptnRow, setupRow, opsRow, opsRow2, motionRow, dataRow);
   return el;
 }

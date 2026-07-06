@@ -26,6 +26,7 @@ export function createBrandSection(): HTMLElement {
     createKnob({ label: 'MASTER VOLUME', resolve: () => ({ target: 'MASTER', paramId: 'masterVolume' }) }).el,
     createKnob({ label: 'TUBE GAIN', resolve: () => ({ target: 'MASTER', paramId: 'valveGain' }) }).el,
     createKnob({ label: 'SWING', resolve: () => ({ target: 'MASTER', paramId: 'swing' }), size: 'sm' }).el,
+    createKnob({ label: 'TUNE', resolve: () => ({ target: 'MASTER', paramId: 'masterTune' }), size: 'sm' }).el,
   );
 
   el.append(logo, knobs);

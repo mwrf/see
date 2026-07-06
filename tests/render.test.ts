@@ -200,7 +200,7 @@ describe('EmxCore end-to-end', () => {
     const p = createDefaultPattern(); // empty pattern — only the click can sound
     p.tempo = 120;
     core.handle({ t: 'SET_PATTERN', pattern: p });
-    core.handle({ t: 'SET_METRONOME', on: true });
+    core.handle({ t: 'SET_METRONOME', mode: 1 }); // click while recording
 
     core.handle({ t: 'TRANSPORT', action: 'play' });
     const { l: noRec } = renderSeconds(core, 1.0);
@@ -215,7 +215,7 @@ describe('EmxCore end-to-end', () => {
     const gap = onsets[1] - onsets[0];
     expect(Math.abs(gap - SR * 0.5)).toBeLessThan(BLOCK * 3);
 
-    core.handle({ t: 'SET_METRONOME', on: false });
+    core.handle({ t: 'SET_METRONOME', mode: 0 });
     const { l: off } = renderSeconds(core, 0.6);
     // a click scheduled right at the previous segment's boundary may spill its
     // ~15ms tail into this render — skip it before asserting silence
@@ -282,7 +282,15 @@ describe('EmxCore end-to-end', () => {
     core.handle({ t: 'SET_PATTERN', pattern: pA });
     core.handle({
       t: 'SET_SONG',
-      song: { name: 'S', tempo: 0, events: [{ patternSlot: 0, mutes: [] }, { patternSlot: 1, mutes: [] }] },
+      song: {
+        name: 'S',
+        tempo: 0,
+        nextSong: -1,
+        events: [
+          { patternSlot: 0, noteOffset: 0, mutes: [] },
+          { patternSlot: 1, noteOffset: 0, mutes: [] },
+        ],
+      },
       patterns: { 0: pA, 1: pB },
     });
     core.handle({ t: 'MODE', mode: 'song' });

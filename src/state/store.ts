@@ -7,7 +7,7 @@
 import type { GlobalSettings, PartId, Pattern, Song } from '../shared/model';
 import { createDefaultGlobal, createDefaultPattern } from '../shared/model';
 
-export type StepKeyMode = 'trig' | 'keyboard' | 'mute' | 'patternSet';
+export type StepKeyMode = 'trig' | 'keyboard' | 'mute' | 'solo' | 'patternSet';
 export type ShiftState = 'off' | 'latched' | 'locked';
 export type AppMode = 'pattern' | 'song' | 'global';
 
@@ -19,7 +19,7 @@ export interface AppState {
   selectedPart: PartId;
   stepKeyMode: StepKeyMode;
   page: number; // bar page shown on the 16 step keys
-  keyboardOctave: number; // octave shift for keyboard mode
+  keyboardOctave: number; // index into KEYBOARD_RANGES (8 positions, like hardware)
   playhead: { playing: boolean; step: number; bar: number; songPos: number };
   recording: boolean;
   mode: AppMode;
@@ -41,7 +41,8 @@ export function createInitialState(): AppState {
     selectedPart: 'D1',
     stepKeyMode: 'trig',
     page: 0,
-    keyboardOctave: 0,
+    keyboardOctave: 4, // A3…C5, around middle C
+
     playhead: { playing: false, step: 0, bar: 0, songPos: 0 },
     recording: false,
     mode: 'pattern',

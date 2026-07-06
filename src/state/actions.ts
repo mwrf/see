@@ -7,19 +7,29 @@
 import { autosaveWorkingPattern, readPatternSlot, writePatternSlot } from '../data/persist';
 import { getEngine } from '../engine/audio-context';
 import { drumWaveName } from '../engine/worklet/drum-rom';
-import type { Beat, DrumPartId, MotionTarget, PartId, Pattern, Song, Step, SynthPartId } from '../shared/model';
+import type { AccentPart, Beat, DrumPartId, MotionTarget, PartId, Pattern, Song, Step, SynthPartId } from '../shared/model';
 import {
   clonePattern,
   createDefaultPattern,
   DRUM_PART_IDS,
+  MAX_GATE,
   MAX_TEMPO,
   MIN_TEMPO,
   STEPS_PER_BAR,
   stepsForPattern,
+  stepsPerMeasure,
   SYNTH_PART_IDS,
 } from '../shared/model';
 import type { ToEngine } from '../shared/messages';
-import { formatParam, paramDef } from '../shared/params';
+import {
+  ARP_SCALE_NAMES,
+  formatParam,
+  formatSynthWave,
+  KEYBOARD_RANGES,
+  METRONOME_MODE_NAMES,
+  paramDef,
+  synthWaveCount,
+} from '../shared/params';
 import { store } from './store';
 
 function send(msg: ToEngine): void {
@@ -38,6 +48,14 @@ export function isSynthPart(id: PartId): id is SynthPartId {
 
 export function isDrumPart(id: PartId): id is DrumPartId {
   return (DRUM_PART_IDS as string[]).includes(id);
+}
+
+export function isAccentPart(id: PartId): id is 'ACCD' | 'ACCS' {
+  return id === 'ACCD' || id === 'ACCS';
+}
+
+function accentOf(pattern: Pattern, id: 'ACCD' | 'ACCS'): AccentPart {
+  return id === 'ACCD' ? pattern.accentDrum : pattern.accentSynth;
 }
 
 export function setLcd(line1: string, line2: string): void {
@@ -80,19 +98,31 @@ export function toggleRec(): void {
   });
 }
 
-let metronomeOn = false;
+/** RESET key: restart the current pattern from its beginning during playback. */
+export function resetPattern(): void {
+  send({ t: 'RESET' });
+}
 
-export function toggleMetronome(): void {
-  metronomeOn = !metronomeOn;
-  send({ t: 'SET_METRONOME', on: metronomeOn });
+/** SHIFT+RESET behavior: hold to erase the selected part's triggers as they pass. */
+export function eraseHold(on: boolean): void {
+  send({ t: 'ERASE_HOLD', on });
+  if (on) setLcd('ERASE', store.get().selectedPart);
+}
+
+/** Metronome cycles Off -> Rec -> On (subset of the hardware's modes). */
+let metronomeMode: 0 | 1 | 2 = 0;
+
+export function cycleMetronome(): void {
+  metronomeMode = ((metronomeMode + 1) % 3) as 0 | 1 | 2;
+  send({ t: 'SET_METRONOME', mode: metronomeMode });
   store.update(['transport', 'lcd'], (s) => {
     s.lcd.line1 = 'METRONOME';
-    s.lcd.line2 = metronomeOn ? 'ON (REC)' : 'OFF';
+    s.lcd.line2 = METRONOME_MODE_NAMES[metronomeMode];
   });
 }
 
-export function isMetronomeOn(): boolean {
-  return metronomeOn;
+export function getMetronomeMode(): number {
+  return metronomeMode;
 }
 
 const tapTimes: number[] = [];
@@ -110,15 +140,30 @@ export function tapTempo(): void {
 }
 
 export function setTempo(bpm: number): void {
-  const clamped = Math.min(MAX_TEMPO, Math.max(MIN_TEMPO, bpm));
+  const clamped = Math.min(MAX_TEMPO, Math.max(MIN_TEMPO, Math.round(bpm * 10) / 10));
   send({ t: 'SET_TEMPO', bpm: clamped });
-  store.update(['transport', 'pattern'], (s) => {
+  store.update(['transport', 'pattern', 'lcd'], (s) => {
     s.pattern.tempo = clamped;
     s.lcd.line1 = 'TEMPO';
     s.lcd.line2 = `${clamped}`;
   });
-  store.update(['lcd'], () => {});
   touchPattern();
+}
+
+/** Live performance transpose, -24..+24 semitones (not saved, like hardware). */
+let transposeSemis = 0;
+
+export function setTranspose(semis: number): void {
+  transposeSemis = Math.min(24, Math.max(-24, Math.round(semis)));
+  send({ t: 'TRANSPOSE', semis: transposeSemis });
+  store.update(['transport', 'lcd'], (s) => {
+    s.lcd.line1 = 'TRANSPOSE';
+    s.lcd.line2 = transposeSemis > 0 ? `+${transposeSemis}` : `${transposeSemis}`;
+  });
+}
+
+export function getTranspose(): number {
+  return transposeSemis;
 }
 
 // ---------------------------------------------------------------------------
@@ -128,7 +173,7 @@ export function setTempo(bpm: number): void {
 export function setSwing(value: number): void {
   const v = Math.min(75, Math.max(50, Math.round(value)));
   send({ t: 'SET_SWING', value: v });
-  store.update(['pattern', 'lcd', 'param:swing:MASTER'], (s) => {
+  store.update(['pattern', 'lcd', 'params'], (s) => {
     s.pattern.swing = v;
     s.lcd.line1 = 'SWING';
     s.lcd.line2 = `${v}%`;
@@ -136,15 +181,21 @@ export function setSwing(value: number): void {
   touchPattern();
 }
 
+function resyncPattern(): void {
+  send({ t: 'SET_PATTERN', pattern: clonePattern(store.get().pattern) });
+  touchPattern();
+}
+
 export function setBeat(beat: Beat): void {
   store.update(['pattern', 'steps', 'lcd'], (s) => {
     s.pattern.beat = beat;
+    // changing BEAT resets LAST STEP to the grid default (manual p.53)
+    s.pattern.lastStep = STEPS_PER_BAR[beat];
     s.page = 0;
     s.lcd.line1 = 'BEAT';
     s.lcd.line2 = beat;
   });
-  send({ t: 'SET_PATTERN', pattern: clonePattern(store.get().pattern) });
-  touchPattern();
+  resyncPattern();
 }
 
 export function setLengthBars(bars: number): void {
@@ -154,35 +205,65 @@ export function setLengthBars(bars: number): void {
     s.lcd.line1 = 'LENGTH';
     s.lcd.line2 = `${s.pattern.lengthBars} BAR${s.pattern.lengthBars > 1 ? 'S' : ''}`;
   });
-  send({ t: 'SET_PATTERN', pattern: clonePattern(store.get().pattern) });
-  touchPattern();
+  resyncPattern();
+}
+
+export function setLastStep(steps: number): void {
+  store.update(['pattern', 'steps', 'lcd'], (s) => {
+    s.pattern.lastStep = Math.min(STEPS_PER_BAR[s.pattern.beat], Math.max(1, Math.round(steps)));
+    s.lcd.line1 = 'LAST STEP';
+    s.lcd.line2 = `${s.pattern.lastStep}`;
+  });
+  resyncPattern();
+}
+
+export function setRollType(type: number): void {
+  store.update(['pattern', 'lcd'], (s) => {
+    s.pattern.rollType = [2, 3, 4].includes(type) ? type : 2;
+    s.lcd.line1 = 'ROLL TYPE';
+    s.lcd.line2 = `${s.pattern.rollType}`;
+  });
+  resyncPattern();
+}
+
+export function cycleArpScale(dir: 1 | -1): void {
+  store.update(['pattern', 'lcd'], (s) => {
+    const n = ARP_SCALE_NAMES.length;
+    s.pattern.arp.scale = (s.pattern.arp.scale + dir + n) % n;
+    s.lcd.line1 = 'ARP SCALE';
+    s.lcd.line2 = ARP_SCALE_NAMES[s.pattern.arp.scale];
+  });
+  resyncPattern();
 }
 
 // ---------------------------------------------------------------------------
 // Part selection / step keys
 // ---------------------------------------------------------------------------
 
-export function selectPart(partId: PartId): void {
+export function selectPart(partId: PartId, audition = true): void {
   store.update(['ui', 'steps', 'lcd'], (s) => {
     s.selectedPart = partId;
-    if (partId === 'ACC') s.lcd.line1 = 'ACCENT';
-    else s.lcd.line1 = `PART ${partId}`;
-    if (isDrumPart(partId)) {
-      const waveId = Math.round(s.pattern.drums[partId].params.waveId);
-      s.lcd.line2 = drumWaveName(waveId);
-    } else if (isSynthPart(partId)) {
-      s.lcd.line2 = formatParam('oscType', s.pattern.synths[partId].params.oscType);
+    if (isAccentPart(partId)) {
+      s.lcd.line1 = partId === 'ACCD' ? 'DRUM ACCENT' : 'SYNTH ACCENT';
+      s.lcd.line2 = `LEVEL ${Math.round(accentOf(s.pattern, partId).level)}`;
+    } else if (isDrumPart(partId)) {
+      s.lcd.line1 = `DRUM ${partId.slice(1)}`;
+      s.lcd.line2 = drumWaveName(Math.round(s.pattern.drums[partId].params.waveId));
     } else {
-      s.lcd.line2 = `LEVEL ${Math.round(s.pattern.accent.level)}`;
+      s.lcd.line1 = `SYNTH ${partId.slice(1)}`;
+      s.lcd.line2 = formatParam('oscType', s.pattern.synths[partId as SynthPartId].params.oscType);
     }
+    // keyboard mode is only valid for synth parts (manual p.12)
+    if (!isSynthPart(partId) && s.stepKeyMode === 'keyboard') s.stepKeyMode = 'trig';
   });
   send({ t: 'SELECT_PART', partId });
-  // pressing a part key auditions its sound (like hardware)
-  if (partId !== 'ACC') send({ t: 'TRIG', partId });
+  // pressing a part key auditions its sound at accented level (like hardware)
+  if (audition && !isAccentPart(partId)) send({ t: 'TRIG', partId });
 }
 
-export function setStepKeyMode(mode: 'trig' | 'keyboard' | 'mute' | 'patternSet'): void {
+export function setStepKeyMode(mode: 'trig' | 'keyboard' | 'mute' | 'solo' | 'patternSet'): void {
   store.update(['ui', 'steps'], (s) => {
+    if (mode === 'keyboard' && !isSynthPart(s.selectedPart)) return;
     s.stepKeyMode = mode;
   });
 }
@@ -196,10 +277,9 @@ export function setPage(page: number): void {
 /** Toggle a step for the selected part. `keyIndex` is 0..15 on the current page. */
 export function toggleStep(keyIndex: number): void {
   const s = store.get();
-  const spb = STEPS_PER_BAR[s.pattern.beat];
-  if (keyIndex >= spb && s.pattern.beat !== '32') return; // 12/24-step grids use fewer keys
-  const perPage = s.pattern.beat === '32' ? 32 : spb;
-  const stepIdx = s.page * perPage + keyIndex;
+  const spm = stepsPerMeasure(s.pattern);
+  if (keyIndex >= spm) return;
+  const stepIdx = s.page * spm + keyIndex;
   if (stepIdx >= stepsForPattern(s.pattern)) return;
 
   const part = s.selectedPart;
@@ -213,11 +293,29 @@ export function toggleStep(keyIndex: number): void {
     st.on = !st.on;
     data = { ...st };
   } else {
-    const st = s.pattern.accent.steps[stepIdx];
+    const st = accentOf(s.pattern, part).steps[stepIdx];
     st.on = !st.on;
     data = { ...st };
   }
   send({ t: 'EDIT_STEP', partId: part, step: stepIdx, data: data as Step });
+  store.update(['steps'], () => {});
+  touchPattern();
+}
+
+/** SHIFT + part key: turn all steps of a part on/off at once (manual p.23). */
+export function toggleAllSteps(partId: PartId): void {
+  const s = store.get();
+  const total = stepsForPattern(s.pattern);
+  const steps = isSynthPart(partId)
+    ? s.pattern.synths[partId].steps
+    : isDrumPart(partId)
+      ? s.pattern.drums[partId].steps
+      : accentOf(s.pattern, partId).steps;
+  const anyOn = steps.slice(0, total).some((st) => st.on);
+  for (let i = 0; i < total; i++) {
+    steps[i].on = !anyOn;
+    send({ t: 'EDIT_STEP', partId, step: i, data: { ...steps[i] } as Step });
+  }
   store.update(['steps'], () => {});
   touchPattern();
 }
@@ -227,40 +325,39 @@ export function setStepNote(stepIdx: number, note: number, gate?: number): void 
   if (!isSynthPart(s.selectedPart)) return;
   const st = s.pattern.synths[s.selectedPart].steps[stepIdx];
   st.note = note;
-  if (gate !== undefined) st.gate = gate;
+  if (gate !== undefined) st.gate = Math.min(MAX_GATE, Math.max(0.25, gate));
   send({ t: 'EDIT_STEP', partId: s.selectedPart, step: stepIdx, data: { ...st } });
   store.update(['steps'], () => {});
   touchPattern();
 }
 
 // ---------------------------------------------------------------------------
-// Keyboard mode (step keys as chromatic keyboard)
+// Keyboard mode (step keys as chromatic keyboard, 8 octave ranges like hardware)
 // ---------------------------------------------------------------------------
 
 export function keyboardNote(keyIndex: number): number {
   const s = store.get();
-  // step keys 0..15 map to a chromatic run from C + octave shift
-  return 48 + s.keyboardOctave * 12 + keyIndex;
+  const range = KEYBOARD_RANGES[Math.min(KEYBOARD_RANGES.length - 1, Math.max(0, s.keyboardOctave))];
+  return range.baseNote + keyIndex;
 }
 
 export function keyboardNoteOn(keyIndex: number): void {
   const s = store.get();
-  if (s.selectedPart === 'ACC') return;
-  const note = keyboardNote(keyIndex);
-  send({ t: 'NOTE_ON', partId: s.selectedPart, note });
+  if (!isSynthPart(s.selectedPart)) return;
+  send({ t: 'NOTE_ON', partId: s.selectedPart, note: keyboardNote(keyIndex) });
 }
 
 export function keyboardNoteOff(): void {
   const s = store.get();
-  if (s.selectedPart === 'ACC') return;
+  if (!isSynthPart(s.selectedPart)) return;
   send({ t: 'NOTE_OFF', partId: s.selectedPart });
 }
 
 export function shiftOctave(delta: number): void {
   store.update(['ui', 'lcd'], (s) => {
-    s.keyboardOctave = Math.min(3, Math.max(-2, s.keyboardOctave + delta));
-    s.lcd.line1 = 'OCTAVE';
-    s.lcd.line2 = s.keyboardOctave >= 0 ? `+${s.keyboardOctave}` : `${s.keyboardOctave}`;
+    s.keyboardOctave = Math.min(KEYBOARD_RANGES.length - 1, Math.max(0, s.keyboardOctave + delta));
+    s.lcd.line1 = 'PITCH RANGE';
+    s.lcd.line2 = KEYBOARD_RANGES[s.keyboardOctave].label;
   });
 }
 
@@ -268,7 +365,7 @@ export function shiftOctave(delta: number): void {
 // Params
 // ---------------------------------------------------------------------------
 
-/** Resolve the ParamMap that backs a target in the working pattern (or null for MASTER). */
+/** Resolve the ParamMap that backs a target in the working pattern (or null). */
 function targetParams(s: ReturnType<typeof store.get>, target: MotionTarget): Record<string, number> | null {
   if (isSynthPart(target as PartId)) return s.pattern.synths[target as SynthPartId].params;
   if (isDrumPart(target as PartId)) return s.pattern.drums[target as DrumPartId].params;
@@ -277,13 +374,19 @@ function targetParams(s: ReturnType<typeof store.get>, target: MotionTarget): Re
 
 export function setParam(target: MotionTarget, paramId: string, value: number): void {
   const def = paramDef(paramId);
-  const v = Math.min(def.max, Math.max(def.min, value));
+  let v = Math.min(def.max, Math.max(def.min, value));
   const s = store.get();
+  let displayValue: string | null = null;
   if (target === 'MASTER') {
     if (paramId === 'masterVolume') s.global.masterVolume = v;
     else if (paramId === 'valveGain') s.global.valveGain = v;
-    else if (paramId === 'accentLevel') s.pattern.accent.level = v;
+    else if (paramId === 'masterTune') s.global.masterTune = ((v - 64) / 63) * 50;
     else if (paramId === 'swing') s.pattern.swing = v;
+  } else if (target === 'ACCD' || target === 'ACCS') {
+    if (paramId === 'level' || paramId === 'accentLevel') {
+      accentOf(s.pattern, target).level = v;
+      displayValue = String(Math.round(v));
+    }
   } else if (target === 'FX1' || target === 'FX2' || target === 'FX3') {
     const slot = s.pattern.fx[Number(target[2]) - 1];
     if (paramId === 'type') slot.type = Math.round(v);
@@ -293,16 +396,29 @@ export function setParam(target: MotionTarget, paramId: string, value: number): 
   } else {
     const params = targetParams(s, target);
     if (!params) return;
-    params[paramId] = def.stepped ? Math.round(v) : v;
+    if (def.stepped) v = Math.round(v);
+    // synth WAVE wraps to the option count of the current osc type
+    if (paramId === 'wave' && isSynthPart(target as PartId)) {
+      const count = synthWaveCount(params.oscType);
+      v = count === 0 ? 0 : Math.min(count - 1, Math.max(0, Math.round(v)));
+      displayValue = formatSynthWave(params.oscType, v);
+    }
+    if (paramId === 'oscType') {
+      // switching osc type clamps wave into the new range
+      const count = synthWaveCount(v);
+      if (params.wave >= Math.max(1, count)) params.wave = 0;
+    }
+    params[paramId] = v;
   }
   send({ t: 'SET_PARAM', target, paramId, value: def.stepped ? Math.round(v) : v });
-  const displayValue =
-    paramId === 'waveId' ? drumWaveName(Math.round(v)) : formatParam(paramId, v);
+  if (displayValue === null) {
+    displayValue = paramId === 'waveId' ? drumWaveName(Math.round(v)) : formatParam(paramId, v);
+  }
   store.update([`param:${paramId}:${target}`, 'params', 'lcd'], (st) => {
     st.lcd.line1 = def.label;
-    st.lcd.line2 = displayValue;
+    st.lcd.line2 = displayValue!;
   });
-  if (target !== 'MASTER' || paramId === 'accentLevel' || paramId === 'swing') touchPattern();
+  if (target !== 'MASTER' || paramId === 'swing') touchPattern();
 }
 
 export function getParam(target: MotionTarget, paramId: string): number {
@@ -310,9 +426,12 @@ export function getParam(target: MotionTarget, paramId: string): number {
   if (target === 'MASTER') {
     if (paramId === 'masterVolume') return s.global.masterVolume;
     if (paramId === 'valveGain') return s.global.valveGain;
-    if (paramId === 'accentLevel') return s.pattern.accent.level;
+    if (paramId === 'masterTune') return 64 + (s.global.masterTune / 50) * 63;
     if (paramId === 'swing') return s.pattern.swing;
     return 0;
+  }
+  if (target === 'ACCD' || target === 'ACCS') {
+    return accentOf(s.pattern, target).level;
   }
   if (target === 'FX1' || target === 'FX2' || target === 'FX3') {
     const slot = s.pattern.fx[Number(target[2]) - 1];
@@ -330,7 +449,7 @@ export function getParam(target: MotionTarget, paramId: string): number {
 // Mute / solo / motion
 // ---------------------------------------------------------------------------
 
-let currentSolo: PartId | null = null;
+const soloSet = new Set<PartId>();
 
 export function toggleMute(partId: PartId): void {
   const s = store.get();
@@ -346,13 +465,26 @@ export function toggleMute(partId: PartId): void {
 }
 
 export function toggleSolo(partId: PartId): void {
-  currentSolo = currentSolo === partId ? null : partId;
-  send({ t: 'SOLO', partId: currentSolo });
-  store.update(['ui'], () => {});
+  if (isAccentPart(partId)) return;
+  const on = !soloSet.has(partId);
+  if (on) soloSet.add(partId);
+  else soloSet.delete(partId);
+  send({ t: 'SOLO', partId, on });
+  store.update(['ui', 'steps'], () => {});
 }
 
-export function getSolo(): PartId | null {
-  return currentSolo;
+export function clearSolo(): void {
+  soloSet.clear();
+  send({ t: 'SOLO', partId: null, on: false });
+  store.update(['ui', 'steps'], () => {});
+}
+
+export function isSolo(partId: PartId): boolean {
+  return soloSet.has(partId);
+}
+
+export function anySolo(): boolean {
+  return soloSet.size > 0;
 }
 
 export function clearMotion(index: number): void {
@@ -388,11 +520,111 @@ export function slider(value: number): void {
 }
 
 // ---------------------------------------------------------------------------
+// Pattern operations (SHIFT functions on hardware)
+// ---------------------------------------------------------------------------
+
+function partSteps(pattern: Pattern, partId: PartId): (Step | { on: boolean })[] {
+  if (isSynthPart(partId)) return pattern.synths[partId].steps;
+  if (isDrumPart(partId)) return pattern.drums[partId].steps;
+  return accentOf(pattern, partId).steps;
+}
+
+/** CLEAR PART: erase the selected part's sequence + its motions (not sound). */
+export function clearPart(partId: PartId): void {
+  const s = store.get();
+  const steps = partSteps(s.pattern, partId);
+  const total = stepsForPattern(s.pattern);
+  for (let i = 0; i < total; i++) {
+    const st = steps[i] as Step;
+    st.on = false;
+    if (isSynthPart(partId)) {
+      st.note = 60; // manual: cleared synth steps reset to C4, gate 0.75
+      st.gate = 0.75;
+    }
+  }
+  s.pattern.motions = s.pattern.motions.filter((m) => m.target !== partId);
+  resyncPattern();
+  store.update(['steps', 'pattern', 'lcd'], (st) => {
+    st.lcd.line1 = 'CLEAR PART';
+    st.lcd.line2 = partId;
+  });
+}
+
+/** CLEAR PATTERN: reinitialize the whole working pattern. */
+export function clearPattern(): void {
+  const s = store.get();
+  const fresh = createDefaultPattern(s.pattern.name);
+  store.update(['pattern', 'steps', 'params', 'lcd'], (st) => {
+    st.pattern = fresh;
+    st.page = 0;
+    st.lcd.line1 = 'CLEAR';
+    st.lcd.line2 = 'PATTERN';
+  });
+  resyncPattern();
+}
+
+/** SHIFT NOTE: transpose the stored note data of a synth part (manual p.55). */
+export function shiftNotes(partId: SynthPartId, semis: number): void {
+  const s = store.get();
+  const total = stepsForPattern(s.pattern);
+  const steps = s.pattern.synths[partId].steps;
+  for (let i = 0; i < total; i++) {
+    steps[i].note = Math.min(127, Math.max(0, steps[i].note + semis));
+  }
+  resyncPattern();
+  store.update(['steps', 'lcd'], (st) => {
+    st.lcd.line1 = 'SHIFT NOTE';
+    st.lcd.line2 = semis > 0 ? `+${semis}` : `${semis}`;
+  });
+}
+
+/** MOVE DATA: rotate a part's steps by N (wraps around, manual p.54). */
+export function moveData(partId: PartId, offset: number): void {
+  const s = store.get();
+  const total = stepsForPattern(s.pattern);
+  const steps = partSteps(s.pattern, partId);
+  const src = steps.slice(0, total).map((st) => ({ ...st }));
+  for (let i = 0; i < total; i++) {
+    const from = (((i - offset) % total) + total) % total;
+    Object.assign(steps[i], src[from]);
+  }
+  resyncPattern();
+  store.update(['steps', 'lcd'], (st) => {
+    st.lcd.line1 = 'MOVE DATA';
+    st.lcd.line2 = offset > 0 ? `+${offset}` : `${offset}`;
+  });
+}
+
+/** COPY PART: copy another part's sound + sequence into the selected part. */
+export function copyPart(from: PartId, to: PartId): void {
+  const s = store.get();
+  if (isSynthPart(from) && isSynthPart(to)) {
+    const src = s.pattern.synths[from];
+    s.pattern.synths[to] = JSON.parse(JSON.stringify(src)) as typeof src;
+  } else if (isDrumPart(from) && isDrumPart(to)) {
+    const src = s.pattern.drums[from];
+    s.pattern.drums[to] = JSON.parse(JSON.stringify(src)) as typeof src;
+  } else {
+    setLcd('COPY PART', 'TYPE MISMATCH');
+    return;
+  }
+  resyncPattern();
+  store.update(['steps', 'params', 'lcd'], (st) => {
+    st.lcd.line1 = 'COPY PART';
+    st.lcd.line2 = `${from} → ${to}`;
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Pattern slots
 // ---------------------------------------------------------------------------
 
 export async function writePattern(slot?: number): Promise<void> {
   const s = store.get();
+  if (s.global.protect) {
+    setLcd('PROTECT', 'MEMORY ON');
+    return;
+  }
   const target = slot ?? s.patternSlot;
   await writePatternSlot(target, clonePattern(s.pattern));
   store.update(['ui', 'lcd'], (st) => {
@@ -401,6 +633,15 @@ export async function writePattern(slot?: number): Promise<void> {
     st.lcd.line1 = 'WRITE';
     st.lcd.line2 = `PATTERN ${formatSlot(target)}`;
   });
+}
+
+export function renamePattern(name: string): void {
+  store.update(['pattern', 'lcd'], (s) => {
+    s.pattern.name = name.slice(0, 8).toUpperCase();
+    s.lcd.line1 = 'RENAME';
+    s.lcd.line2 = s.pattern.name;
+  });
+  touchPattern();
 }
 
 export async function loadPattern(slot: number): Promise<void> {
@@ -416,7 +657,7 @@ export async function loadPattern(slot: number): Promise<void> {
     });
   } else {
     send({ t: 'SET_NEXT_PATTERN', pattern: clonePattern(pattern), slot });
-    store.update(['pattern', 'steps', 'ui', 'lcd', 'transport'], (st) => {
+    store.update(['pattern', 'steps', 'ui', 'lcd', 'transport', 'params'], (st) => {
       st.pattern = pattern;
       st.patternSlot = slot;
       st.patternDirty = false;
@@ -434,7 +675,7 @@ export function formatSlot(slot: number): string {
 }
 
 // ---------------------------------------------------------------------------
-// Song mode (engine sync happens when entering song mode / pressing play)
+// Song mode
 // ---------------------------------------------------------------------------
 
 export async function setAppMode(mode: 'pattern' | 'song' | 'global'): Promise<void> {
@@ -476,12 +717,16 @@ export function setSong(song: Song | null, slot: number): void {
   });
 }
 
+function blankSong(slot: number): Song {
+  return { name: `SONG ${slot + 1}`, tempo: 0, nextSong: -1, events: [] };
+}
+
 export async function loadSong(slot: number): Promise<void> {
   const { readSongSlot } = await import('../data/persist');
   const song = await readSongSlot(slot);
   store.update(['ui', 'song', 'lcd'], (s) => {
     s.songSlot = slot;
-    s.song = song ?? { name: `SONG ${slot + 1}`, tempo: 0, events: [] };
+    s.song = song ?? blankSong(slot);
     s.lcd.line1 = formatSongSlot(slot);
     s.lcd.line2 = song ? `${song.events.length} EVENTS` : 'EMPTY';
   });
@@ -491,6 +736,10 @@ export async function loadSong(slot: number): Promise<void> {
 export async function saveSong(): Promise<void> {
   const s = store.get();
   if (!s.song) return;
+  if (s.global.protect) {
+    setLcd('PROTECT', 'MEMORY ON');
+    return;
+  }
   const { writeSongSlot } = await import('../data/persist');
   await writeSongSlot(s.songSlot, s.song);
   setLcd('WRITE', formatSongSlot(s.songSlot));
@@ -499,11 +748,9 @@ export async function saveSong(): Promise<void> {
 /** Append the current pattern slot as the next song event. */
 export async function addSongEvent(): Promise<void> {
   const s = store.get();
-  if (!s.song) {
-    setSong({ name: `SONG ${s.songSlot + 1}`, tempo: 0, events: [] }, s.songSlot);
-  }
+  if (!s.song) setSong(blankSong(s.songSlot), s.songSlot);
   const song = store.get().song!;
-  song.events.push({ patternSlot: s.patternSlot, mutes: [] });
+  song.events.push({ patternSlot: s.patternSlot, noteOffset: 0, mutes: [] });
   store.update(['song', 'lcd'], (st) => {
     st.lcd.line1 = `POS ${song.events.length}`;
     st.lcd.line2 = `PTN ${formatSlot(s.patternSlot)}`;
@@ -520,4 +767,25 @@ export async function removeSongEvent(): Promise<void> {
     st.lcd.line2 = `${s.song!.events.length} LEFT`;
   });
   if (s.mode === 'song') await syncSongToEngine();
+}
+
+/** Adjust the note offset of the last song event (per-position transpose). */
+export async function nudgeSongNoteOffset(delta: number): Promise<void> {
+  const s = store.get();
+  const ev = s.song?.events[s.song.events.length - 1];
+  if (!ev) return;
+  ev.noteOffset = Math.min(24, Math.max(-24, ev.noteOffset + delta));
+  store.update(['song', 'lcd'], (st) => {
+    st.lcd.line1 = 'NOTE OFFSET';
+    st.lcd.line2 = ev.noteOffset > 0 ? `+${ev.noteOffset}` : `${ev.noteOffset}`;
+  });
+  if (s.mode === 'song') await syncSongToEngine();
+}
+
+export function toggleProtect(): void {
+  store.update(['ui', 'lcd'], (s) => {
+    s.global.protect = !s.global.protect;
+    s.lcd.line1 = 'PROTECT';
+    s.lcd.line2 = s.global.protect ? 'ON' : 'OFF';
+  });
 }

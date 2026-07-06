@@ -43,7 +43,7 @@ describe('pattern serialization', () => {
     const raw = JSON.parse(JSON.stringify(p)) as Record<string, unknown>;
     delete (raw.synths as Record<string, { params: Record<string, number> }>).S1.params.lfoDepth;
     const restored = migratePattern(raw);
-    expect(restored.synths.S1.params.lfoDepth).toBe(0);
+    expect(restored.synths.S1.params.lfoDepth).toBe(64); // bipolar center default
   });
 
   it('clamps out-of-range values', () => {
@@ -67,24 +67,43 @@ describe('pattern serialization', () => {
     const f = createEmptyFile();
     f.patterns[3] = createDefaultPattern('SLOT3');
     f.patterns[255] = createDefaultPattern('LAST');
-    f.songs[0] = { name: 'SONG', tempo: 140, events: [{ patternSlot: 3, mutes: ['D1', 'S2'] }] };
+    f.songs[0] = {
+      name: 'SONG',
+      tempo: 140,
+      nextSong: 4,
+      events: [{ patternSlot: 3, noteOffset: -12, mutes: ['D1', 'S2'] }],
+    };
     f.global.valveGain = 90;
     const restored = migrateFile(JSON.parse(JSON.stringify(f)));
     expect(restored.patterns[3]?.name).toBe('SLOT3');
     expect(restored.patterns[255]?.name).toBe('LAST');
     expect(restored.patterns[0]).toBeNull();
-    expect(restored.songs[0]?.events[0]).toEqual({ patternSlot: 3, mutes: ['D1', 'S2'] });
+    expect(restored.songs[0]?.nextSong).toBe(4);
+    expect(restored.songs[0]?.events[0]).toEqual({ patternSlot: 3, noteOffset: -12, mutes: ['D1', 'S2'] });
     expect(restored.global.valveGain).toBe(90);
     expect(() => migrateFile({ magic: 'NOPE' })).toThrow();
   });
 
-  it('computes step counts from beat and length', () => {
+  it('computes step counts from beat, length and last step (hardware grids)', () => {
     const p = createDefaultPattern();
+    // beat 32 still uses 16 steps per measure (each step = a 32nd note)
     p.beat = '32';
     p.lengthBars = 8;
-    expect(stepsForPattern(p)).toBe(256);
+    p.lastStep = 16;
+    expect(stepsForPattern(p)).toBe(128);
+    // triplet grids use 12 steps per measure
     p.beat = '8T';
     p.lengthBars = 2;
+    p.lastStep = 12;
+    expect(stepsForPattern(p)).toBe(24);
+    // LAST STEP shortens the measure (e.g. 11-step odd meter)
+    p.beat = '16';
+    p.lengthBars = 2;
+    p.lastStep = 11;
+    expect(stepsForPattern(p)).toBe(22);
+    // lastStep is capped by the beat grid
+    p.beat = '8T';
+    p.lastStep = 16;
     expect(stepsForPattern(p)).toBe(24);
   });
 });

@@ -1,7 +1,10 @@
 /**
  * EmxCore — the whole instrument, renderable offline (tests) or inside the
- * AudioWorkletProcessor. Owns the sequencer clock, 14 voices, motion
- * sequences, 3 FX slots, and the valve output stage.
+ * AudioWorkletProcessor. Owns the sequencer clock, voices, motion sequences,
+ * 3 FX slots and the valve output stage. Behavior follows the EMX-1 manual:
+ * dual accent parts, per-part swing switch, roll type, last step, legato,
+ * live transpose, multi-solo, erase-hold, metronome modes, arpeggiator with
+ * ribbon = gate/resolution and slider = pitch.
  */
 
 import { clamp } from '../../shared/math';
@@ -19,13 +22,13 @@ import type {
 import {
   createDefaultPattern,
   DRUM_PART_IDS,
-  STEPS_PER_BAR,
   STEPS_PER_QUARTER,
   stepsForPattern,
+  stepsPerMeasure,
   SYNTH_PART_IDS,
 } from '../../shared/model';
 import type { FromEngine, ToEngine } from '../../shared/messages';
-import { mapLevel, SCALES } from '../../shared/params';
+import { ARP_SCALES, mapLevel } from '../../shared/params';
 import type { DrumWave } from './drum-rom';
 import { createFx, type FxProcessor } from './fx';
 import { SequencerClock } from './sequencer';
@@ -71,22 +74,27 @@ export class EmxCore {
   private valve = new Valve();
   private masterVolume = 100;
   private valveGain = 0;
+  private masterTuneCents = 0;
 
-  private solo: PartId | null = null;
+  private solo = new Set<PartId>();
   private selectedPart: PartId = 'S1';
+  /** live performance transpose, -24..+24 semitones (synth parts, not saved) */
+  private transpose = 0;
+  /** while true, erase the selected part's triggers as the playhead passes */
+  private eraseHold = false;
 
   // live keyboard state
   private heldNotes = new Map<PartId, number>();
   /** realtime-record hold tracking: measure how long each key is held */
   private recHold = new Map<PartId, { step: number; startSample: number }>();
 
-  // metronome (clicks while recording)
-  private metronome = false;
+  // metronome: 0 = off, 1 = during recording, 2 = during play + record
+  private metronomeMode = 0;
   private clickRemaining = 0;
   private clickPhase = 0;
   private clickFreq = 880;
 
-  // ribbon arpeggiator
+  // ribbon arpeggiator (ribbon = gate/resolution + trigger, slider = pitch)
   private ribbonPos: number | null = null;
   private sliderPos = 0.5;
   private arpCountdown = 0;
@@ -96,6 +104,7 @@ export class EmxCore {
   private song: Song | null = null;
   private songPatterns: Record<number, Pattern> = {};
   private songPos = 0;
+  private songNoteOffset = 0;
 
   // motion recording accumulators, keyed `${target}:${paramId}`
   private motionRec = new Map<string, MotionSeq>();
@@ -145,9 +154,12 @@ export class EmxCore {
         }
         break;
       case 'EDIT_STEP': {
-        const part = this.getPart(msg.partId);
-        if (part) part.steps[msg.step] = msg.data as Step;
-        else if (msg.partId === 'ACC') this.pattern.accent.steps[msg.step] = { on: (msg.data as Step).on };
+        if (msg.partId === 'ACCD') this.pattern.accentDrum.steps[msg.step] = { on: (msg.data as Step).on };
+        else if (msg.partId === 'ACCS') this.pattern.accentSynth.steps[msg.step] = { on: (msg.data as Step).on };
+        else {
+          const part = this.getPart(msg.partId);
+          if (part) part.steps[msg.step] = msg.data as Step;
+        }
         break;
       }
       case 'SET_PARAM':
@@ -164,11 +176,24 @@ export class EmxCore {
       case 'TRANSPORT':
         this.transport(msg.action);
         break;
+      case 'SET_METRONOME':
+        this.metronomeMode = msg.mode;
+        break;
+      case 'TRANSPOSE':
+        this.transpose = clamp(Math.round(msg.semis), -24, 24);
+        break;
+      case 'RESET':
+        if (this.playing) {
+          this.clock.reset();
+          this.pending = [];
+          this.lastReportedStep = -1;
+        }
+        break;
+      case 'ERASE_HOLD':
+        this.eraseHold = msg.on;
+        break;
       case 'NOTE_ON':
         this.noteOn(msg.partId, msg.note);
-        break;
-      case 'SET_METRONOME':
-        this.metronome = msg.on;
         break;
       case 'NOTE_OFF':
         this.noteOff(msg.partId);
@@ -189,7 +214,9 @@ export class EmxCore {
         break;
       }
       case 'SOLO':
-        this.solo = msg.partId;
+        if (msg.partId === null) this.solo.clear();
+        else if (msg.on) this.solo.add(msg.partId);
+        else this.solo.delete(msg.partId);
         break;
       case 'SET_MOTION_MODE': {
         const part = this.getPart(msg.partId);
@@ -203,6 +230,7 @@ export class EmxCore {
         this.song = msg.song;
         this.songPatterns = msg.patterns;
         this.songPos = 0;
+        this.songNoteOffset = msg.song?.events[0]?.noteOffset ?? 0;
         break;
       case 'SONG_POS':
         this.songPos = msg.position;
@@ -224,11 +252,15 @@ export class EmxCore {
     if (target === 'MASTER') {
       if (paramId === 'masterVolume') this.masterVolume = value;
       else if (paramId === 'valveGain') this.valveGain = value;
-      else if (paramId === 'accentLevel') this.pattern.accent.level = value;
+      else if (paramId === 'masterTune') this.masterTuneCents = ((value - 64) / 63) * 50;
       else if (paramId === 'swing') {
         this.pattern.swing = value;
         this.clock.swing = value;
       }
+    } else if (target === 'ACCD') {
+      if (paramId === 'level') this.pattern.accentDrum.level = value;
+    } else if (target === 'ACCS') {
+      if (paramId === 'level') this.pattern.accentSynth.level = value;
     } else if (target === 'FX1' || target === 'FX2' || target === 'FX3') {
       const slot = this.pattern.fx[Number(target[2]) - 1];
       if (paramId === 'type') slot.type = Math.round(value);
@@ -236,7 +268,7 @@ export class EmxCore {
       else if (paramId === 'edit2') slot.edit2 = value;
       else if (paramId === 'chain') slot.chain = value >= 0.5;
     } else {
-      const part = this.getPart(target);
+      const part = this.getPart(target as PartId);
       if (part) part.params[paramId] = value;
     }
     // motion recording: sample knob writes while REC+PLAY
@@ -288,12 +320,18 @@ export class EmxCore {
     for (const v of this.drumVoices.values()) v.noteOff();
   }
 
+  private audible(partId: PartId, muted: boolean): boolean {
+    if (muted) return false;
+    if (this.solo.size > 0 && !this.solo.has(partId)) return false;
+    return true;
+  }
+
   // -------------------------------------------------------------------------
   // Live input (keyboard / pads / ribbon)
   // -------------------------------------------------------------------------
 
   private noteOn(partId: PartId, note: number): void {
-    if (partId === 'ACC') return;
+    if (partId === 'ACCD' || partId === 'ACCS') return;
     this.heldNotes.set(partId, note);
     // live triggers can arrive before the first render populated the
     // effective-params overlay — make sure it exists now
@@ -301,7 +339,7 @@ export class EmxCore {
     const gate = this.playing ? Math.floor(this.clock.samplesPerStep * 0.95) : this.sr * 4;
     // a re-strike of a still-held part finalizes the previous note's gate first
     this.finishRecHold(partId);
-    this.triggerPart(partId, note, gate, false, 0);
+    this.triggerPart(partId, note, gate, true, 0);
     // realtime record: quantize to nearest step
     if (this.recording && this.playing) {
       const total = this.clock.totalSteps;
@@ -328,7 +366,7 @@ export class EmxCore {
     const st = part?.steps[hold.step] as Step | undefined;
     if (!st || !st.on) return;
     const heldSamples = Math.max(0, this.clock.position - hold.startSample);
-    const gate = clamp(heldSamples / this.clock.samplesPerStep, 0.25, 8);
+    const gate = clamp(heldSamples / this.clock.samplesPerStep, 0.25, 128);
     st.gate = Math.round(gate * 20) / 20; // 0.05 resolution for stable serialization
     this.post({ t: 'RECORDED', partId, step: hold.step, data: { ...st } });
   }
@@ -340,25 +378,35 @@ export class EmxCore {
     if (sv) sv.noteOff();
   }
 
-  /** Trigger a part's voice now (offset 0) or store for sub-block trigger handling. */
+  /** Trigger a part's voice now. Live hits play at accented level (manual p.23). */
   private triggerPart(partId: PartId, note: number, gateSamples: number, accented: boolean, _offset: number): void {
-    const rollInterval = Math.max(32, Math.floor(this.clock.samplesPerStep / 2));
-    const info: TriggerInfo = {
-      note,
-      gateSamples,
-      accented,
-      accentLevel: this.pattern.accent.level,
-      rollInterval,
-    };
+    const rollInterval = Math.max(24, Math.floor(this.clock.samplesPerStep / clamp(this.pattern.rollType, 2, 4)));
     const sv = this.synthVoices.get(partId as SynthPartId);
     if (sv) {
+      const info: TriggerInfo = {
+        note: note + this.transpose + this.songNoteOffset,
+        gateSamples,
+        accented,
+        accentLevel: this.pattern.accentSynth.level,
+        rollInterval,
+      };
       sv.trigger(this.eff(partId), info);
       return;
     }
     const dv = this.drumVoices.get(partId as DrumPartId);
     if (dv) {
+      const info: TriggerInfo = {
+        note,
+        gateSamples,
+        accented,
+        accentLevel: this.pattern.accentDrum.level,
+        rollInterval,
+      };
       const waveId = Math.round(this.eff(partId).waveId ?? 0);
       dv.trigger(this.eff(partId), info, this.rom[waveId] ?? null);
+      // hardware: 6A/6B (and 7A/7B) cannot sound together — new one silences its pair
+      const pair = EXCLUSIVE_PAIR[partId as DrumPartId];
+      if (pair) this.drumVoices.get(pair)?.noteOff();
     }
   }
 
@@ -386,7 +434,6 @@ export class EmxCore {
   private flushMotionRec(): void {
     for (const m of this.motionRec.values()) {
       if (!m.mask.some(Boolean)) continue;
-      // merge into pattern motions (replace same target+param)
       const idx = this.pattern.motions.findIndex((x) => x.target === m.target && x.paramId === m.paramId);
       if (idx >= 0) this.pattern.motions[idx] = m;
       else if (this.pattern.motions.length < 24) this.pattern.motions.push(m);
@@ -408,7 +455,6 @@ export class EmxCore {
   private motionValue(m: MotionSeq, stepFloat: number, smooth: boolean): number {
     const total = this.clock.totalSteps;
     const cur = Math.floor(stepFloat) % total;
-    // find value at/before cur (hold)
     const valueAt = (s: number): number => {
       for (let k = 0; k < total; k++) {
         const idx = (s - k + total) % total;
@@ -418,7 +464,6 @@ export class EmxCore {
     };
     const v0 = valueAt(cur);
     if (!smooth) return v0;
-    // next recorded value after cur
     let nextIdx = -1;
     for (let k = 1; k <= total; k++) {
       const idx = (cur + k) % total;
@@ -432,6 +477,11 @@ export class EmxCore {
     const frac = (stepFloat - Math.floor(stepFloat)) / nextIdx;
     return v0 + (v1 - v0) * frac;
   }
+
+  /** Switch-type params always play back TRIG HOLD, even in SMOOTH mode (manual p.59). */
+  private static FORCED_HOLD = new Set([
+    'ampEg', 'roll', 'fxSend', 'fxOn', 'lfoWave', 'lfoDest', 'lfoBpmSync', 'filterType', 'oscType', 'wave', 'waveId', 'accent', 'swingSw',
+  ]);
 
   /** Rebuild effective params for every part + FX from base + motions. */
   private refreshEffectiveParams(): void {
@@ -447,14 +497,21 @@ export class EmxCore {
     if (!this.playing) return;
     for (const m of this.pattern.motions) {
       const part = this.getPart(m.target as PartId);
-      const smooth = part ? part.motionMode === 0 : true;
+      // FX motions always SMOOTH; accent + switch params always TRIG HOLD
+      let smooth = part ? part.motionMode === 0 : true;
+      if (m.target === 'ACCD' || m.target === 'ACCS') smooth = false;
+      if (EmxCore.FORCED_HOLD.has(m.paramId)) smooth = false;
       const v = this.motionValue(m, stepFloat, smooth);
-      this.eff(m.target)[m.paramId] = v;
+      if (m.target === 'ACCD') this.pattern.accentDrum.level = v;
+      else if (m.target === 'ACCS') this.pattern.accentSynth.level = v;
+      else this.eff(m.target)[m.paramId] = v;
     }
     // while recording, the live knob value wins over motion playback
     for (const m of this.motionRec.values()) {
       const step = Math.floor(stepFloat) % this.clock.totalSteps;
-      if (m.mask[step]) this.eff(m.target)[m.paramId] = m.values[step];
+      if (m.mask[step] && m.target !== 'ACCD' && m.target !== 'ACCS') {
+        this.eff(m.target)[m.paramId] = m.values[step];
+      }
     }
   }
 
@@ -463,35 +520,49 @@ export class EmxCore {
   // -------------------------------------------------------------------------
 
   private scheduleStep(step: number, time: number): void {
-    const accented = this.pattern.accent.steps[step]?.on ?? false;
+    const accentedDrum = this.pattern.accentDrum.steps[step]?.on ?? false;
+    const accentedSynth = this.pattern.accentSynth.steps[step]?.on ?? false;
     const swing = this.clock.swingDelay(step);
+    // erase-hold: wipe the selected part's trigger as the playhead passes
+    if (this.eraseHold && this.playing) {
+      const part = this.getPart(this.selectedPart);
+      if (part && part.steps[step]?.on) {
+        part.steps[step].on = false;
+        this.post({ t: 'RECORDED', partId: this.selectedPart, step, data: part.steps[step] as Step });
+      }
+    }
     for (const id of SYNTH_PART_IDS) {
       const part = this.pattern.synths[id];
       const st = part.steps[step];
-      if (!st?.on || part.mute) continue;
-      if (this.solo && this.solo !== id) continue;
+      if (!st?.on || !this.audible(id, part.mute)) continue;
+      const partSwing = part.params.swingSw >= 0.5 ? swing : 0;
       this.pending.push({
-        time: time + swing,
+        time: time + partSwing,
         partId: id,
         note: st.note,
         gateSamples: Math.max(64, Math.floor(st.gate * this.clock.samplesPerStep)),
-        accented,
+        accented: accentedSynth,
       });
     }
     for (const id of DRUM_PART_IDS) {
       const part = this.pattern.drums[id];
       const st = part.steps[step];
-      if (!st?.on || part.mute) continue;
-      if (this.solo && this.solo !== id) continue;
+      if (!st?.on || !this.audible(id, part.mute)) continue;
+      // exclusive pairs: when both A and B are triggered on a step, only B sounds
+      const pair = EXCLUSIVE_PAIR[id];
+      if (pair && EXCLUSIVE_B[id] === false && this.pattern.drums[pair].steps[step]?.on && this.audible(pair, this.pattern.drums[pair].mute)) {
+        continue;
+      }
+      const partSwing = part.params.swingSw >= 0.5 ? swing : 0;
       this.pending.push({
-        time: time + swing,
+        time: time + partSwing,
         partId: id,
         note: 60,
         gateSamples: Math.floor(this.clock.samplesPerStep * 0.95),
-        accented,
+        accented: accentedDrum,
       });
     }
-    // ribbon arp: retrigger the selected part each step while touched
+    // ribbon arp: retrigger the selected part each interval while touched
     if (this.ribbonPos !== null) this.scheduleArp(time + swing);
   }
 
@@ -499,18 +570,38 @@ export class EmxCore {
     const pos = this.ribbonPos;
     if (pos === null) return;
     const partId = this.selectedPart;
-    if (partId === 'ACC') return;
-    const gate = Math.max(48, Math.floor(this.clock.samplesPerStep * clamp(this.sliderPos, 0.05, 1)));
-    let note = 60;
+    if (partId === 'ACCD' || partId === 'ACCS') return;
     if ((SYNTH_PART_IDS as string[]).includes(partId)) {
-      const scale = SCALES[this.pattern.arp.scale % SCALES.length];
-      const span = 2 * scale.length; // +/- one octave of scale degrees
-      const degree = Math.round((pos - 0.5) * span);
+      // synth: ribbon position = gate time; slider = pitch within the arp scale
+      const gate = Math.max(48, Math.floor(this.clock.samplesPerStep * clamp(0.05 + pos * 0.95, 0.05, 1)));
+      const scale = ARP_SCALES[this.pattern.arp.scale % ARP_SCALES.length];
+      const span = 2 * scale.length; // ± one octave of scale degrees around center
+      const degree = Math.round((this.sliderPos - 0.5) * span);
       const oct = Math.floor(degree / scale.length);
       const idx = ((degree % scale.length) + scale.length) % scale.length;
-      note = this.pattern.arp.centerNote + this.pattern.arp.key + oct * 12 + scale[idx];
+      const note = this.pattern.arp.centerNote + oct * 12 + scale[idx];
+      this.pending.push({ time, partId, note, gateSamples: gate, accented: false });
+    } else {
+      // drum: ribbon position sets the repeat resolution (handled by arp clock)
+      this.pending.push({
+        time,
+        partId,
+        note: 60,
+        gateSamples: Math.floor(this.clock.samplesPerStep * 0.9),
+        accented: false,
+      });
     }
-    this.pending.push({ time, partId, note, gateSamples: gate, accented: false });
+  }
+
+  /** Repeat interval for the drum-arp / stopped-arp self clock, from ribbon position. */
+  private arpInterval(): number {
+    const pos = this.ribbonPos ?? 0.5;
+    if ((SYNTH_PART_IDS as string[]).includes(this.selectedPart)) {
+      return this.clock.samplesPerStep; // synth arp: 16th notes (manual p.13)
+    }
+    // drum: left = slow (half note) … right = fast (32nd), exponential
+    const steps = Math.pow(2, 3 - pos * 5); // 8 .. 0.25 steps
+    return Math.max(48, this.clock.samplesPerStep * steps);
   }
 
   private onPatternEnd(): void {
@@ -521,12 +612,13 @@ export class EmxCore {
       if (!ev) {
         this.playing = false;
         this.releaseAll();
-        this.post({ t: 'SONG_ENDED' });
+        this.post({ t: 'SONG_ENDED', nextSong: this.song.nextSong });
         return;
       }
       const p = this.songPatterns[ev.patternSlot];
       if (p) {
         this.applyPattern(p);
+        this.songNoteOffset = ev.noteOffset ?? 0;
         for (const partId of ev.mutes) {
           const part = this.getPart(partId);
           if (part) part.mute = true;
@@ -562,10 +654,10 @@ export class EmxCore {
       const boundaries = this.clock.advance(n);
       for (const b of boundaries) {
         if (b.wrapped) this.onPatternEnd();
-        this.scheduleStep(b.step % this.clock.totalSteps, b.time);
-        // metronome: click on each quarter note while recording
-        if (this.metronome && this.recording) {
-          const step = b.step % this.clock.totalSteps;
+        const step = b.step % this.clock.totalSteps;
+        this.scheduleStep(step, b.time);
+        // metronome: click each quarter note (mode 1 = while recording, 2 = always)
+        if ((this.metronomeMode === 2 || (this.metronomeMode === 1 && this.recording)) && this.playing) {
           const spq = STEPS_PER_QUARTER[this.pattern.beat];
           if (step % spq === 0) {
             this.clickRemaining = Math.floor(this.sr * 0.015);
@@ -573,10 +665,9 @@ export class EmxCore {
             this.clickFreq = step === 0 ? 1320 : 880;
           }
         }
-        const step = b.step % this.clock.totalSteps;
         if (step !== this.lastReportedStep) {
           this.lastReportedStep = step;
-          const spb = STEPS_PER_BAR[this.pattern.beat];
+          const spb = stepsPerMeasure(this.pattern);
           this.post({
             t: 'POSITION',
             step: step % spb,
@@ -586,12 +677,19 @@ export class EmxCore {
           });
         }
       }
-      // standalone arp retrigger between steps is unnecessary: steps cover it
     } else if (this.ribbonPos !== null) {
-      // arp while stopped: self-clocked at the step rate
+      // arp while stopped: self-clocked
       this.arpCountdown -= n;
       if (this.arpCountdown <= 0) {
-        this.arpCountdown = this.clock.samplesPerStep;
+        this.arpCountdown = this.arpInterval();
+        this.scheduleArp(blockStart);
+      }
+    }
+    // drum arp while playing uses its own resolution clock too
+    if (this.playing && this.ribbonPos !== null && (DRUM_PART_IDS as string[]).includes(this.selectedPart)) {
+      this.arpCountdown -= n;
+      if (this.arpCountdown <= 0) {
+        this.arpCountdown = this.arpInterval();
         this.scheduleArp(blockStart);
       }
     }
@@ -615,7 +713,6 @@ export class EmxCore {
     for (let c = 0; c < cuts.length - 1; c++) {
       const from = cuts[c];
       const to = cuts[c + 1];
-      // apply triggers landing at `from`
       while (dueIdx < due.length) {
         const off = clamp(Math.floor(due[dueIdx].time - blockStart), 0, n - 1);
         if (off > from) break;
@@ -689,25 +786,40 @@ export class EmxCore {
       const voice = this.synthVoices.get(id);
       if (!voice?.active) continue;
       const part = this.pattern.synths[id];
+      if (!this.audible(id, part.mute)) continue;
       const ep = this.eff(id);
       const useFx = ep.fxOn >= 0.5;
       const fxIdx = clamp(Math.round(ep.fxSend), 0, 2);
       const l = useFx ? this.busFxL[fxIdx] : this.busDryL;
       const r = useFx ? this.busFxR[fxIdx] : this.busDryR;
-      if (part.mute || (this.solo && this.solo !== id)) continue;
-      voice.render(ep, bpm, l, r, from, to);
+      voice.render(ep, bpm, this.masterTuneCents, l, r, from, to);
     }
     for (const id of DRUM_PART_IDS) {
       const voice = this.drumVoices.get(id);
       if (!voice?.active) continue;
       const part = this.pattern.drums[id];
+      if (!this.audible(id, part.mute)) continue;
       const ep = this.eff(id);
       const useFx = ep.fxOn >= 0.5;
       const fxIdx = clamp(Math.round(ep.fxSend), 0, 2);
       const l = useFx ? this.busFxL[fxIdx] : this.busDryL;
       const r = useFx ? this.busFxR[fxIdx] : this.busDryR;
-      if (part.mute || (this.solo && this.solo !== id)) continue;
       voice.render(ep, bpm, l, r, from, to);
     }
   }
 }
+
+/** 6A/6B and 7A/7B exclusive pairs (manual p.22). */
+const EXCLUSIVE_PAIR: Partial<Record<DrumPartId, DrumPartId>> = {
+  D6: 'D7',
+  D7: 'D6',
+  D8: 'D9',
+  D9: 'D8',
+};
+/** true = this part is the "B" side, which wins when both trigger on a step. */
+const EXCLUSIVE_B: Partial<Record<DrumPartId, boolean>> = {
+  D6: false,
+  D7: true,
+  D8: false,
+  D9: true,
+};

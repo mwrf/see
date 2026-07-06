@@ -282,10 +282,20 @@ body.landscape .arp-slider {
 /* ---- transport ---- */
 .transport-body {
   flex-direction: row !important;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 6px;
 }
+
+.sec-transport .pbtn-big {
+  min-width: 42px;
+  min-height: 38px;
+  padding: 5px 8px;
+  font-size: 13px;
+}
+
+.pbtn-reset { font-size: 9px !important; letter-spacing: 0.5px; }
 
 /* ---- rows ---- */
 .toggle-row,

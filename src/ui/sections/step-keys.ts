@@ -1,9 +1,10 @@
 /**
  * The 16 step keys with red LEDs. Behavior depends on stepKeyMode:
  *  - trig: toggle steps for the selected part (LEDs show triggers, playhead sweeps)
- *  - keyboard: chromatic keyboard for the selected part
- *  - mute: keys 1-15 toggle part mutes
- *  - patternSet: keys select pattern slots within the current bank page
+ *  - keyboard: chromatic keyboard for the selected synth part
+ *  - mute: keys toggle part mutes (drums 1-9 = keys 1-9, synths = keys 11-15)
+ *  - solo: same mapping, toggles solo
+ *  - patternSet: keys select pattern slots within the current group
  */
 
 import {
@@ -14,14 +15,24 @@ import {
   loadPattern,
   setPage,
   toggleMute,
+  toggleSolo,
+  isSolo,
   toggleStep,
 } from '../../state/actions';
 import { store } from '../../state/store';
 import type { PartId } from '../../shared/model';
-import { ALL_PART_IDS, STEPS_PER_BAR, stepsForPattern } from '../../shared/model';
+import { DRUM_PART_IDS, SYNTH_PART_IDS, stepsForPattern, stepsPerMeasure } from '../../shared/model';
 import { createButton, type PanelButton } from '../controls/button';
 import { openStepEditor } from '../step-editor';
 import { section } from './helpers';
+
+/** Key -> part mapping for mute/solo modes: drums on 1-9, synths on 11-15. */
+const MUTE_KEY_PARTS: (PartId | null)[] = [
+  ...DRUM_PART_IDS,
+  null,
+  ...SYNTH_PART_IDS,
+  null,
+];
 
 export function createStepKeys(): HTMLElement {
   const { el, body } = section('STEP KEYS', 'sec-stepkeys');
@@ -64,8 +75,13 @@ export function createStepKeys(): HTMLElement {
         keyboardNoteOn(i);
         break;
       case 'mute': {
-        const part = ALL_PART_IDS[i];
-        if (part && part !== 'ACC') toggleMute(part);
+        const part = MUTE_KEY_PARTS[i];
+        if (part) toggleMute(part);
+        break;
+      }
+      case 'solo': {
+        const part = MUTE_KEY_PARTS[i];
+        if (part) toggleSolo(part);
         break;
       }
       case 'patternSet':
@@ -85,10 +101,9 @@ export function createStepKeys(): HTMLElement {
       onKeyPress(i);
       return;
     }
-    const spb = STEPS_PER_BAR[s.pattern.beat];
-    const perPage = Math.min(16, spb);
-    const stepIdx = s.page * perPage + i;
-    if (stepIdx >= stepsForPattern(s.pattern)) return;
+    const spm = stepsPerMeasure(s.pattern);
+    const stepIdx = s.page * spm + i;
+    if (i >= spm || stepIdx >= stepsForPattern(s.pattern)) return;
     openStepEditor(stepIdx);
   }
 
@@ -97,7 +112,8 @@ export function createStepKeys(): HTMLElement {
     const part = s.selectedPart;
     if (isSynthPart(part)) return s.pattern.synths[part].steps[idx]?.on ?? false;
     if (isDrumPart(part)) return s.pattern.drums[part].steps[idx]?.on ?? false;
-    return s.pattern.accent.steps[idx]?.on ?? false;
+    if (part === 'ACCD') return s.pattern.accentDrum.steps[idx]?.on ?? false;
+    return s.pattern.accentSynth.steps[idx]?.on ?? false;
   }
 
   function muteOf(part: PartId): boolean {
@@ -109,33 +125,37 @@ export function createStepKeys(): HTMLElement {
 
   function refreshLeds(): void {
     const s = store.get();
-    const spb = STEPS_PER_BAR[s.pattern.beat];
-    const perPage = Math.min(16, spb);
-    barLabel.textContent = `BAR ${s.page + 1}/${s.pattern.lengthBars}${s.pattern.beat === '32' ? ' (A)' : ''}`;
+    const spm = stepsPerMeasure(s.pattern);
+    barLabel.textContent = `BAR ${s.page + 1}/${s.pattern.lengthBars} · ${s.pattern.beat}`;
 
     for (let i = 0; i < 16; i++) {
       const key = keys[i];
       switch (s.stepKeyMode) {
         case 'trig': {
-          const stepIdx = s.page * perPage + i;
-          const inRange = i < perPage && stepIdx < stepsForPattern(s.pattern);
+          const stepIdx = s.page * spm + i;
+          const inRange = i < spm && stepIdx < stepsForPattern(s.pattern);
           key.el.classList.toggle('stepkey-off-range', !inRange);
           key.setLed(inRange && stepOnAt(stepIdx), 'red');
           break;
         }
         case 'keyboard': {
-          // light the keys that fall on white-note positions for orientation
-          const semitone = i % 12;
+          // light the white-note positions for orientation (A-based ranges)
+          const semitone = (9 + i) % 12; // ranges start on A
           const black = [1, 3, 6, 8, 10].includes(semitone);
           key.el.classList.toggle('stepkey-off-range', false);
           key.setLed(!black, 'orange');
           break;
         }
         case 'mute': {
-          const part = ALL_PART_IDS[i];
-          const valid = !!part && part !== 'ACC';
-          key.el.classList.toggle('stepkey-off-range', !valid);
-          key.setLed(valid && !muteOf(part), 'green');
+          const part = MUTE_KEY_PARTS[i];
+          key.el.classList.toggle('stepkey-off-range', !part);
+          key.setLed(!!part && !muteOf(part), 'green');
+          break;
+        }
+        case 'solo': {
+          const part = MUTE_KEY_PARTS[i];
+          key.el.classList.toggle('stepkey-off-range', !part);
+          key.setLed(!!part && isSolo(part), 'orange');
           break;
         }
         case 'patternSet': {
@@ -152,13 +172,12 @@ export function createStepKeys(): HTMLElement {
   let lastLit = -1;
   function sweep(): void {
     const s = store.get();
-    const spb = STEPS_PER_BAR[s.pattern.beat];
-    const perPage = Math.min(16, spb);
+    const spm = stepsPerMeasure(s.pattern);
     let lit = -1;
     if (s.playhead.playing && s.stepKeyMode === 'trig') {
-      const absStep = s.playhead.bar * spb + s.playhead.step;
-      const pageStart = s.page * perPage;
-      if (absStep >= pageStart && absStep < pageStart + perPage) lit = absStep - pageStart;
+      const absStep = s.playhead.bar * spm + s.playhead.step;
+      const pageStart = s.page * spm;
+      if (absStep >= pageStart && absStep < pageStart + spm) lit = absStep - pageStart;
     }
     if (lit !== lastLit) {
       if (lastLit >= 0) keys[lastLit]?.el.classList.remove('stepkey-playhead');

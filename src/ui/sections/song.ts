@@ -7,6 +7,7 @@ import {
   addSongEvent,
   formatSongSlot,
   loadSong,
+  nudgeSongNoteOffset,
   removeSongEvent,
   saveSong,
   setAppMode,
@@ -54,8 +55,10 @@ export function createSongSection(): HTMLElement {
   const editRow = row('seq-row');
   const add = createButton({ label: '+ PTN', className: 'pbtn-sm', onPress: () => void addSongEvent() });
   const del = createButton({ label: '− EVT', className: 'pbtn-sm', onPress: () => void removeSongEvent() });
+  const offDown = createButton({ label: 'OFS −', className: 'pbtn-sm', onPress: () => void nudgeSongNoteOffset(-1) });
+  const offUp = createButton({ label: 'OFS +', className: 'pbtn-sm', onPress: () => void nudgeSongNoteOffset(1) });
   const save = createButton({ label: 'SAVE', className: 'pbtn-sm pbtn-write', onPress: () => void saveSong() });
-  editRow.append(add.el, del.el, save.el);
+  editRow.append(add.el, del.el, offDown.el, offUp.el, save.el);
 
   const info = document.createElement('div');
   info.className = 'song-info';
