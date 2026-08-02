@@ -1,0 +1,25 @@
+{
+  "_comment": "Aircraft with no route match: a light single flying as its own registration, a bizjet on an operator callsign nobody publishes a route for, and a target with no callsign at all. The frame must degrade gracefully rather than showing blanks.",
+  "now": 1754126899.6,
+  "messages": 148239412,
+  "aircraft": [
+    {
+      "hex": "4ca61b", "flight": "EIDYR   ", "alt_baro": 2500, "alt_geom": 2710,
+      "gs": 105.0, "track": 165.3, "baro_rate": 0, "squawk": "7000",
+      "lat": 53.33802, "lon": -6.27551, "seen_pos": 0.4, "seen": 0.2,
+      "t": "C172", "r": "EI-DYR", "category": "A1", "rssi": -8.6
+    },
+    {
+      "hex": "4009a3", "flight": "NJE721H ", "alt_baro": 41000, "alt_geom": 41390,
+      "gs": 466.0, "track": 254.1, "baro_rate": 0, "squawk": "1327",
+      "lat": 53.40119, "lon": -6.36620, "seen_pos": 0.9, "seen": 0.5,
+      "t": "GL5T", "r": "9H-VCA", "category": "A2", "rssi": -17.2
+    },
+    {
+      "hex": "3d2a10", "alt_baro": "ground",
+      "gs": 12.0, "track": 88.0, "squawk": "1000",
+      "lat": 53.42690, "lon": -6.24380, "seen_pos": 1.8, "seen": 0.9,
+      "rssi": -6.4
+    }
+  ]
+}

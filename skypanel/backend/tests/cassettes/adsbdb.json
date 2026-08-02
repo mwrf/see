@@ -1,0 +1,92 @@
+{
+  "_comment": "Trimmed adsbdb.com v0 responses. RYR1812 has a full route; RCH485 is the 404 an unknown military callsign gets.",
+  "entries": {
+    "https://api.adsbdb.com/v0/callsign/RYR1812": {
+      "status": 200,
+      "json": {
+        "response": {
+          "flightroute": {
+            "callsign": "RYR1812",
+            "callsign_icao": "RYR1812",
+            "callsign_iata": "FR1812",
+            "airline": {
+              "name": "Ryanair",
+              "icao": "RYR",
+              "iata": "FR",
+              "country": "Ireland",
+              "callsign": "RYANAIR"
+            },
+            "origin": {
+              "country_iso_name": "IE",
+              "elevation": 242,
+              "iata_code": "DUB",
+              "icao_code": "EIDW",
+              "latitude": 53.421299,
+              "longitude": -6.27007,
+              "municipality": "Dublin",
+              "name": "Dublin Airport"
+            },
+            "destination": {
+              "country_iso_name": "GB",
+              "elevation": 348,
+              "iata_code": "STN",
+              "icao_code": "EGSS",
+              "latitude": 51.885,
+              "longitude": 0.235,
+              "municipality": "London",
+              "name": "London Stansted Airport"
+            }
+          }
+        }
+      }
+    },
+    "https://api.adsbdb.com/v0/callsign/RCH485": {
+      "status": 404,
+      "json": { "response": "unknown callsign" }
+    },
+    "https://api.adsbdb.com/v0/callsign/EIDYR": {
+      "status": 404,
+      "json": { "response": "unknown callsign" }
+    },
+    "https://api.adsbdb.com/v0/callsign/IRL112": {
+      "status": 404,
+      "json": { "response": "unknown callsign" }
+    },
+    "https://api.adsbdb.com/v0/aircraft/4CA7B3": {
+      "status": 200,
+      "json": {
+        "response": {
+          "aircraft": {
+            "type": "737-8AS",
+            "icao_type": "B738",
+            "manufacturer": "Boeing",
+            "mode_s": "4CA7B3",
+            "registration": "EI-DYR",
+            "registered_owner": "Ryanair",
+            "registered_owner_country_iso_name": "IE",
+            "registered_owner_operator_flag_code": "RYR"
+          }
+        }
+      }
+    },
+    "https://api.adsbdb.com/v0/aircraft/4CA44D": {
+      "status": 200,
+      "json": {
+        "response": {
+          "aircraft": {
+            "type": "H145",
+            "icao_type": "H145",
+            "manufacturer": "Airbus Helicopters",
+            "mode_s": "4CA44D",
+            "registration": "EI-EMS",
+            "registered_owner": "Irish Community Air Ambulance"
+          }
+        }
+      }
+    },
+    "https://api.adsbdb.com/v0/aircraft/AE1442": {
+      "status": 404,
+      "json": { "response": "unknown aircraft" }
+    }
+  }
+}

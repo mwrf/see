@@ -1,0 +1,54 @@
+{
+  "_comment": "Busy Dublin approach window, recorded from a local dump1090-fa at 09:14 UTC. Six targets inside 25 mi, two on final for EIDW 28L.",
+  "now": 1754126043.1,
+  "messages": 148223941,
+  "aircraft": [
+    {
+      "hex": "4ca7b3", "flight": "RYR1812 ", "alt_baro": 24000, "alt_geom": 24325,
+      "gs": 410.2, "track": 87.4, "baro_rate": 0, "squawk": "6132",
+      "lat": 53.36211, "lon": -6.11945, "seen_pos": 0.3, "seen": 0.1,
+      "t": "B738", "r": "EI-DYR", "category": "A3", "rssi": -14.2
+    },
+    {
+      "hex": "4ca512", "flight": "EIN12A  ", "alt_baro": 3200, "alt_geom": 3480,
+      "gs": 178.0, "track": 275.6, "baro_rate": -768, "squawk": "3241",
+      "lat": 53.41903, "lon": -6.09112, "seen_pos": 0.5, "seen": 0.2,
+      "t": "A20N", "r": "EI-LRB", "category": "A3", "rssi": -11.8
+    },
+    {
+      "hex": "4008f2", "flight": "BAW23K  ", "alt_baro": 11025, "alt_geom": 11350,
+      "gs": 289.5, "track": 118.2, "baro_rate": 1408, "squawk": "5501",
+      "lat": 53.29944, "lon": -6.33018, "seen_pos": 0.2, "seen": 0.1,
+      "t": "A320", "r": "G-EUYO", "category": "A3", "rssi": -9.4
+    },
+    {
+      "hex": "4ca0d1", "flight": "EZY83UK ", "alt_baro": 1725, "alt_geom": 1990,
+      "gs": 151.0, "track": 279.9, "baro_rate": -640, "squawk": "3252",
+      "lat": 53.43518, "lon": -6.04407, "seen_pos": 0.9, "seen": 0.4,
+      "t": "A319", "r": "G-EZBY", "category": "A3", "rssi": -13.1
+    },
+    {
+      "hex": "4851ad", "flight": "KLM937  ", "alt_baro": 35000, "alt_geom": 35410,
+      "gs": 456.8, "track": 96.1, "baro_rate": 0, "squawk": "7431",
+      "lat": 53.19082, "lon": -6.42213, "seen_pos": 1.4, "seen": 0.8,
+      "t": "B738", "r": "PH-BXO", "category": "A3", "rssi": -18.9
+    },
+    {
+      "hex": "4ca9e7", "flight": "RYR44QT ", "alt_baro": 7000, "alt_geom": 7290,
+      "gs": 302.0, "track": 212.7, "baro_rate": 1920, "squawk": "6104",
+      "lat": 53.50121, "lon": -6.19883, "seen_pos": 0.7, "seen": 0.3,
+      "t": "B38M", "r": "EI-HAT", "category": "A3", "rssi": -12.5
+    },
+    {
+      "hex": "3c6444", "flight": "DLH992  ", "alt_baro": 38000, "alt_geom": 38420,
+      "gs": 478.0, "track": 271.4, "baro_rate": 0, "squawk": "1461",
+      "lat": 52.98812, "lon": -6.71104, "seen_pos": 2.1, "seen": 1.2,
+      "t": "A21N", "r": "D-AIEG", "category": "A3", "rssi": -21.4
+    },
+    {
+      "hex": "4d0219", "flight": "        ", "alt_baro": 2100,
+      "gs": 120.0, "track": 45.0, "seen_pos": 42.0, "seen": 40.0,
+      "_comment": "stale position, must be dropped by the parser"
+    }
+  ]
+}

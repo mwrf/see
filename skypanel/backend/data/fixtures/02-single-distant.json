@@ -1,0 +1,13 @@
+{
+  "_comment": "One high-altitude transatlantic overflight at ~48 mi. Outside a default 30 mi scan radius, inside a widened one.",
+  "now": 1754126103.4,
+  "messages": 148224552,
+  "aircraft": [
+    {
+      "hex": "a0f1c5", "flight": "UAL23   ", "alt_baro": 39000, "alt_geom": 39380,
+      "gs": 492.0, "track": 268.9, "baro_rate": 0, "squawk": "2145",
+      "lat": 53.98221, "lon": -6.94017, "seen_pos": 1.1, "seen": 0.6,
+      "t": "B789", "r": "N29975", "category": "A5", "rssi": -24.7
+    }
+  ]
+}

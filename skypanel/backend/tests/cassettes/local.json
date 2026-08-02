@@ -1,0 +1,39 @@
+{
+  "_comment": "Endpoint probing: the first two candidates fail the way real installs fail (connection refused surfaced as 502, and a tar1090 HTML index served at the dump1090-fa path), the third answers with real JSON.",
+  "entries": {
+    "http://raspberrypi.local:8080/data/aircraft.json": {
+      "status": 502,
+      "text": "Bad Gateway"
+    },
+    "http://raspberrypi.local:8080/skyaware/data/aircraft.json": {
+      "status": 200,
+      "text": "<!DOCTYPE html><html><head><title>tar1090</title></head><body></body></html>"
+    },
+    "http://raspberrypi.local:8080/tar1090/data/aircraft.json": {
+      "status": 200,
+      "json": {
+        "now": 1754126043.1,
+        "messages": 148223941,
+        "aircraft": [
+          {
+            "hex": "4ca7b3",
+            "flight": "RYR1812 ",
+            "alt_baro": 24000,
+            "gs": 410.2,
+            "track": 87.4,
+            "squawk": "6132",
+            "lat": 53.36211,
+            "lon": -6.11945,
+            "seen_pos": 0.3,
+            "t": "B738",
+            "r": "EI-DYR"
+          }
+        ]
+      }
+    },
+    "http://nothing.local:8080/data/aircraft.json": { "status": 404, "text": "not found" },
+    "http://nothing.local:8080/skyaware/data/aircraft.json": { "status": 404, "text": "not found" },
+    "http://nothing.local:8080/tar1090/data/aircraft.json": { "status": 404, "text": "not found" },
+    "http://nothing.local/tar1090/data/aircraft.json": { "status": 404, "text": "not found" }
+  }
+}

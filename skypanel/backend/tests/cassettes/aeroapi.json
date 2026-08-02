@@ -1,0 +1,43 @@
+{
+  "_comment": "Trimmed FlightAware AeroAPI v4 /flights/{ident} response. Only the fields the client reads are kept.",
+  "entries": {
+    "https://aeroapi.flightaware.com/aeroapi/flights/RYR1812": {
+      "status": 200,
+      "json": {
+        "flights": [
+          {
+            "ident": "RYR1812",
+            "ident_icao": "RYR1812",
+            "ident_iata": "FR1812",
+            "operator_icao": "RYR",
+            "aircraft_type": "B738",
+            "origin": {
+              "code": "EIDW",
+              "code_icao": "EIDW",
+              "code_iata": "DUB",
+              "name": "Dublin Airport",
+              "city": "Dublin"
+            },
+            "destination": {
+              "code": "EGSS",
+              "code_icao": "EGSS",
+              "code_iata": "STN",
+              "name": "London Stansted",
+              "city": "London"
+            },
+            "scheduled_off": "2026-08-02T08:45:00Z",
+            "actual_off": "2026-08-02T08:52:00Z",
+            "actual_on": null,
+            "estimated_in": "2026-08-02T09:58:00Z",
+            "scheduled_in": "2026-08-02T09:50:00Z",
+            "progress_percent": 62
+          }
+        ]
+      }
+    },
+    "https://aeroapi.flightaware.com/aeroapi/flights/BAW23K": {
+      "status": 404,
+      "json": { "title": "Not Found", "detail": "no flights found" }
+    }
+  }
+}

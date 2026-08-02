@@ -1,0 +1,6 @@
+{
+  "_comment": "Empty sky: 04:10 local, receiver healthy, nothing airborne in range. The frame builder must produce an 'empty' frame, not an error.",
+  "now": 1754108995.0,
+  "messages": 148100004,
+  "aircraft": []
+}

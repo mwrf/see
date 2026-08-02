@@ -1,0 +1,19 @@
+{
+  "_comment": "Military traffic: a USAF C-17 on a Reach callsign (military hex block) and an Irish Air Corps CASA. Neither has a route in adsbdb, so this exercises the negative cache.",
+  "now": 1754126510.8,
+  "messages": 148231107,
+  "aircraft": [
+    {
+      "hex": "ae1442", "flight": "RCH485  ", "alt_baro": 33000, "alt_geom": 33390,
+      "gs": 441.0, "track": 91.8, "baro_rate": 0, "squawk": "4517",
+      "lat": 53.38771, "lon": -6.15522, "seen_pos": 0.4, "seen": 0.2,
+      "t": "C17", "r": "05-5148", "category": "A5", "rssi": -16.3
+    },
+    {
+      "hex": "4ca8ff", "flight": "IAC252  ", "alt_baro": 8000, "alt_geom": 8260,
+      "gs": 210.0, "track": 187.2, "baro_rate": -320, "squawk": "0374",
+      "lat": 53.29011, "lon": -6.30442, "seen_pos": 0.8, "seen": 0.4,
+      "category": "A2", "rssi": -12.9
+    }
+  ]
+}

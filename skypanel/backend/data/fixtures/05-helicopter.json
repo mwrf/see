@@ -1,0 +1,19 @@
+{
+  "_comment": "Rotorcraft: an Irish Coast Guard S-92 low over the bay (ADS-B emitter category A7) plus an air-ambulance H145 with no category set, identified by type code alone.",
+  "now": 1754126744.2,
+  "messages": 148235880,
+  "aircraft": [
+    {
+      "hex": "4ca31c", "flight": "RCG116  ", "alt_baro": 1200, "alt_geom": 1440,
+      "gs": 118.0, "track": 42.5, "baro_rate": 128, "squawk": "0023",
+      "lat": 53.33108, "lon": -6.19934, "seen_pos": 0.6, "seen": 0.3,
+      "t": "S92", "r": "EI-ICG", "category": "A7", "rssi": -10.1
+    },
+    {
+      "hex": "4ca44d", "flight": "IRL112  ", "alt_baro": 900, "alt_geom": 1105,
+      "gs": 96.0, "track": 310.0, "baro_rate": -256, "squawk": "0037",
+      "lat": 53.37442, "lon": -6.24118, "seen_pos": 1.0, "seen": 0.5,
+      "t": "H145", "r": "EI-EMS", "rssi": -11.7
+    }
+  ]
+}

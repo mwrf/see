@@ -1,0 +1,43 @@
+# SkyPanel deployment configuration. Copy to config.toml and edit.
+# User-facing preferences (units, filters, brightness) are NOT here -- they live
+# in the settings UI and persist as JSON, so they can change without a restart.
+
+[source]
+# local      -- your own dump1090 / readsb receiver (preferred)
+# aggregator -- a public API (adsb.fi / adsb.lol / airplanes.live)
+# mock       -- replay the recorded fixtures, for offline development
+# auto       -- probe local at startup, fall back to aggregator if it is absent
+mode = "auto"
+
+local_host = "raspberrypi.local"
+# Set this only if your decoder serves aircraft.json from a non-standard path;
+# leaving it unset makes SkyPanel probe the four common locations.
+# local_path = "http://raspberrypi.local:8080/data/aircraft.json"
+
+aggregator_provider = "adsb_fi"   # adsb_fi | adsb_lol | airplanes_live
+failover = true                   # local -> aggregator when local is unhealthy
+failover_after_s = 60.0
+
+# mock mode only
+mock_speed = 1.0
+# fixture_dir = "data/fixtures"
+
+[enrich]
+adsbdb_enabled = true
+
+# FlightAware AeroAPI. Needs AEROAPI_KEY in the environment; without it this
+# stays off no matter what you set here.
+aeroapi_enabled = false
+aeroapi_monthly_limit = 1500
+
+cache_path = "skypanel-cache.sqlite"
+route_ttl_s = 43200      # 12 h
+aircraft_ttl_s = 2592000 # 30 d
+negative_ttl_s = 3600    # 1 h -- keeps unmatched military callsigns cheap
+
+[server]
+host = "0.0.0.0"
+port = 8000
+# settings_path = "/var/lib/skypanel/settings.json"
+# history_path = "/var/lib/skypanel/history.sqlite"
+firmware_dir = "firmware-releases"

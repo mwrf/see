@@ -1,0 +1,60 @@
+{
+  "_comment": "adsb.fi opendata v2 response, trimmed to three targets. Same shape as adsb.lol and airplanes.live.",
+  "entries": {
+    "https://opendata.adsb.fi/api/v2/lat/53.3498/lon/-6.2603/dist/26": {
+      "status": 200,
+      "json": {
+        "ac": [
+          {
+            "hex": "4ca7b3",
+            "type": "adsb_icao",
+            "flight": "RYR1812 ",
+            "r": "EI-DYR",
+            "t": "B738",
+            "alt_baro": 24000,
+            "alt_geom": 24325,
+            "gs": 410.2,
+            "track": 87.4,
+            "baro_rate": 0,
+            "squawk": "6132",
+            "category": "A3",
+            "lat": 53.36211,
+            "lon": -6.11945,
+            "seen_pos": 0.3,
+            "seen": 0.1
+          },
+          {
+            "hex": "4ca512",
+            "flight": "EIN12A  ",
+            "r": "EI-LRB",
+            "t": "A20N",
+            "alt_baro": 3200,
+            "gs": 178.0,
+            "track": 275.6,
+            "baro_rate": -768,
+            "lat": 53.41903,
+            "lon": -6.09112,
+            "seen_pos": 0.5
+          },
+          {
+            "hex": "3d2a10",
+            "alt_baro": "ground",
+            "gs": 12.0,
+            "lat": 53.4269,
+            "lon": -6.2438,
+            "seen_pos": 1.8
+          }
+        ],
+        "msg": "No error",
+        "now": 1754126043100,
+        "total": 3,
+        "ctime": 1754126043100,
+        "ptime": 2
+      }
+    },
+    "https://api.adsb.lol/v2/lat/53.3498/lon/-6.2603/dist/26": {
+      "status": 200,
+      "json": { "ac": [], "msg": "No error", "total": 0 }
+    }
+  }
+}
