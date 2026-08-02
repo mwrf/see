@@ -1,0 +1,14 @@
+{
+  "_comment": [
+    "esp32FOTA manifest, served by the backend at /firmware/manifest.json so an update",
+    "never leaves the LAN. Point [server].firmware_manifest at a copy of this file and",
+    "put the .bin next to it.",
+    "",
+    "  pio run -e esp32s3",
+    "  cp .pio/build/esp32s3/firmware.bin  var/firmware/skypanel-0.2.0.bin",
+    "  # bump `version` below; the device checks every six hours"
+  ],
+  "type": "skypanel-s3",
+  "version": "0.2.0",
+  "url": "http://raspberrypi.local:8000/firmware/skypanel-0.2.0.bin"
+}

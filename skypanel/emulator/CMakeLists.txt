@@ -31,6 +31,9 @@ add_library(skypanel_render STATIC
   ${FIRMWARE_DIR}/lib/display/PanelPainter.cpp
   ${FIRMWARE_DIR}/lib/display/EmulatorDisplay.cpp
   ${FIRMWARE_DIR}/lib/net/PosixHttpClient.cpp
+  ${FIRMWARE_DIR}/lib/device/Buttons.cpp
+  ${FIRMWARE_DIR}/lib/device/DeviceConfig.cpp
+  ${FIRMWARE_DIR}/lib/display/Hub75Display.cpp
 )
 
 target_include_directories(skypanel_render PUBLIC
@@ -39,6 +42,7 @@ target_include_directories(skypanel_render PUBLIC
   ${FIRMWARE_DIR}/lib/render
   ${FIRMWARE_DIR}/lib/display
   ${FIRMWARE_DIR}/lib/net
+  ${FIRMWARE_DIR}/lib/device
 )
 
 # ARDUINO is tested by Adafruit_GFX.h before it includes Arduino.h, so it has to come
@@ -79,6 +83,8 @@ add_executable(render_tests
   ${FIRMWARE_DIR}/test/test_renderer.cpp
   ${FIRMWARE_DIR}/test/test_painter.cpp
   ${FIRMWARE_DIR}/test/test_http.cpp
+  ${FIRMWARE_DIR}/test/test_buttons.cpp
+  ${FIRMWARE_DIR}/test/test_device.cpp
   ${FIRMWARE_DIR}/test/test_webview.cpp
   src/WebView.cpp
 )

@@ -1,0 +1,48 @@
+# SkyPanel on a Pi.
+#
+#   cp ../.env.example ../.env      # AEROAPI_KEY, if you have one
+#   docker compose up -d
+#
+# Host networking on purpose: the backend has to reach `raspberrypi.local` on the LAN
+# and the panel has to reach the backend. Bridge networking makes both awkward and buys
+# nothing on a single-host deployment.
+
+services:
+  skypanel:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: skypanel:latest
+    container_name: skypanel
+    restart: unless-stopped
+    network_mode: host
+
+    env_file:
+      - ../.env
+    environment:
+      SKYPANEL_CONFIG: /etc/skypanel/config.toml
+      SKYPANEL_STATE_DIR: /var/lib/skypanel
+      SKYPANEL_PORT: "8000"
+
+    volumes:
+      # Settings, the enrichment cache and the history database.
+      - skypanel-state:/var/lib/skypanel
+      # Edit this on the host and `docker compose restart` to pick it up.
+      - ../backend/config.toml:/etc/skypanel/config.toml:ro
+
+    # The backend serves a LAN device and holds a couple of SQLite files; it does not
+    # need to write anywhere else.
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  skypanel-state:

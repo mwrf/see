@@ -1,0 +1,50 @@
+[Unit]
+Description=SkyPanel flight display backend
+Documentation=https://github.com/mwrf/see/tree/master/skypanel
+# Not Requires=: the backend must still come up and say "no receiver" on the panel if
+# the decoder is down. That diagnostic is the point.
+Wants=network-online.target
+After=network-online.target dump1090-fa.service
+
+[Service]
+Type=exec
+User=skypanel
+Group=skypanel
+WorkingDirectory=/opt/skypanel
+
+Environment=SKYPANEL_CONFIG=/etc/skypanel/config.toml
+Environment=SKYPANEL_STATE_DIR=/var/lib/skypanel
+# Secrets (AEROAPI_KEY). chmod 600, owned by root. Optional: the unit starts without it.
+EnvironmentFile=-/etc/skypanel/skypanel.env
+
+ExecStart=/usr/bin/env uv run --frozen skypanel-serve
+
+Restart=on-failure
+RestartSec=5
+# A failing feed is not a failing service; don't let a flapping receiver trip the
+# start limit and leave the panel dark.
+StartLimitIntervalSec=0
+
+# Hardening. The service reads its own package, writes one state directory, and makes
+# outbound HTTP. It needs nothing else.
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=no
+StateDirectory=skypanel
+ReadWritePaths=/var/lib/skypanel
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=skypanel
+
+[Install]
+WantedBy=multi-user.target
