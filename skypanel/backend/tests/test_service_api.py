@@ -136,8 +136,13 @@ async def test_rebuild_reflects_a_settings_change_without_another_poll(service):
 def enriched_for(callsign="BAW832", *, lat=53.28, lon=-6.44, alt=11000.0, on_ground=False):
     return EnrichedAircraft(
         aircraft=Aircraft(
-            hex="406a2f", callsign=callsign, lat=lat, lon=lon,
-            alt_baro_ft=alt, gs_kt=301.0, on_ground=on_ground,
+            hex="406a2f",
+            callsign=callsign,
+            lat=lat,
+            lon=lon,
+            alt_baro_ft=alt,
+            gs_kt=301.0,
+            on_ground=on_ground,
         ),
         route=Route(origin="DUB", destination="LHR", airline_icao="BAW"),
         traffic_category=Category.AIRLINE,
@@ -321,3 +326,49 @@ def test_firmware_manifest_404s_when_none_is_configured(client):
 def test_frame_json_is_small_enough_for_an_esp32_to_parse(client):
     # The firmware parses this into a fixed buffer; keep an eye on the size.
     assert len(json.dumps(client.get("/api/frame").json())) < 1024
+
+
+async def test_tracking_a_flight_that_is_not_in_range_says_so(
+    config, settings_store, cache, fixture_dir
+):
+    svc = build_service(config, settings_store, cache, fixture_dir, fixture="helicopter")
+    svc.start_tracking("BAW832")
+    await svc.poll_once()
+    frame = svc.current_frame()
+    # Never the helicopter under BA832's banner.
+    assert frame.mode == "tracking"
+    assert frame.progress is None
+    assert [line.text for line in frame.lines] == ["BAW832", "SEARCHING"]
+    await svc.aclose()
+
+
+async def test_tracking_holds_the_last_known_aircraft_when_it_drops_out(
+    config, settings_store, cache, fixture_dir
+):
+    svc = build_service(config, settings_store, cache, fixture_dir)
+    svc.start_tracking("BAW832")
+    await svc.poll_once()
+    assert svc.current_frame().progress is not None
+
+    # The flight leaves the feed; the panel keeps showing it rather than jumping.
+    svc.sources.source("mock").select("helicopter")
+    await svc.poll_once()
+    frame = svc.current_frame()
+    assert frame.mode == "tracking"
+    assert frame.lines[0].text == "BRITISH AIRWAYS"
+    await svc.aclose()
+
+
+async def test_starting_a_new_track_forgets_the_previous_aircraft(
+    config, settings_store, cache, fixture_dir
+):
+    svc = build_service(config, settings_store, cache, fixture_dir)
+    svc.start_tracking("BAW832")
+    await svc.poll_once()
+    assert svc.current_frame().lines[0].text == "BRITISH AIRWAYS"
+
+    svc.start_tracking("QFA9")
+    svc.sources.source("mock").select("helicopter")
+    await svc.poll_once()
+    assert [line.text for line in svc.current_frame().lines] == ["QFA9", "SEARCHING"]
+    await svc.aclose()

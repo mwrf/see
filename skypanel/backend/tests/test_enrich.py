@@ -237,8 +237,14 @@ async def test_enricher_does_not_ask_when_the_decoder_already_knows(cache: Cache
     )
     enr = Enricher(EnrichConfig(), cache=cache, adsbdb=api)
     await enr.enrich(
-        Aircraft(hex="4ca7b5", callsign="RYR1812", lat=53.4, lon=-6.3,
-                 type_code="B738", registration="EI-DAA")
+        Aircraft(
+            hex="4ca7b5",
+            callsign="RYR1812",
+            lat=53.4,
+            lon=-6.3,
+            type_code="B738",
+            registration="EI-DAA",
+        )
     )
     assert not any("/aircraft/" in url for url in calls)
     await enr.aclose()

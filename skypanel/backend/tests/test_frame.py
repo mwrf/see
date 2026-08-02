@@ -52,7 +52,10 @@ def test_frame_matches_the_documented_shape(ryanair, settings):
 
     title, route, telemetry = frame.lines
     assert (title.text, title.colour, title.style, title.scroll) == (
-        "RYANAIR", "#073590", "title", "auto"
+        "RYANAIR",
+        "#073590",
+        "title",
+        "auto",
     )
     assert route.text == "FR1812  DUB→STN  B738"
     assert telemetry.text == "24,000FT  410KT  6.1MI"
@@ -62,7 +65,10 @@ def test_frame_serialises_to_the_json_the_device_parses(ryanair, settings):
     payload = fb.build_nearest(ryanair, settings, source="local").model_dump(mode="json")
     assert set(payload) >= {"mode", "source", "generated_at", "lines", "progress", "status"}
     assert payload["lines"][0] == {
-        "text": "RYANAIR", "colour": "#073590", "style": "title", "scroll": "auto"
+        "text": "RYANAIR",
+        "colour": "#073590",
+        "style": "title",
+        "scroll": "auto",
     }
 
 
@@ -104,8 +110,14 @@ def test_unknown_airline_renders_white(settings):
 
 def test_aircraft_with_no_route_still_produces_a_usable_frame(settings):
     enriched = EnrichedAircraft(
-        aircraft=Aircraft(hex="abc", callsign="N904TX", alt_baro_ft=14000,
-                          gs_kt=338, distance_nm=4.0, registration="N904TX"),
+        aircraft=Aircraft(
+            hex="abc",
+            callsign="N904TX",
+            alt_baro_ft=14000,
+            gs_kt=338,
+            distance_nm=4.0,
+            registration="N904TX",
+        ),
         route=Route(),
     )
     frame = fb.build_nearest(enriched, settings, source="local")

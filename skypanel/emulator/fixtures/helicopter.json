@@ -1,0 +1,30 @@
+{
+  "mode": "nearest",
+  "source": "local",
+  "generated_at": "2026-08-02T09:14:03Z",
+  "lines": [
+    {
+      "text": "IRISH112",
+      "colour": "#ffffff",
+      "style": "title",
+      "scroll": "auto"
+    },
+    {
+      "text": "IRISH112  AW13",
+      "colour": "#c8c8c8",
+      "style": "body",
+      "scroll": "auto"
+    },
+    {
+      "text": "900FT  110KT  2.8MI",
+      "colour": "#808080",
+      "style": "body",
+      "scroll": "auto"
+    }
+  ],
+  "progress": null,
+  "status": "live",
+  "brightness": 60,
+  "poll_interval_s": 5.0,
+  "note": null
+}

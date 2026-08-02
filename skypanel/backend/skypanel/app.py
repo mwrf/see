@@ -104,14 +104,14 @@ def create_app(config: Config | None = None, *, service: PanelService | None = N
         if not ident:
             raise HTTPException(status_code=422, detail="ident is required")
         panel = panel_of(request)
-        state = panel.tracker.start(ident)
+        state = panel.start_tracking(ident)
         await panel.poll_once()
         return {"tracking": state.ident, "found": state.seen}
 
     @app.post("/api/track/cancel")
     async def post_track_cancel(request: Request) -> dict[str, Any]:
         panel = panel_of(request)
-        panel.tracker.cancel()
+        panel.stop_tracking()
         await panel.poll_once()
         return {"tracking": None}
 

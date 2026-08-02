@@ -140,9 +140,7 @@ async def test_aggregator_clamps_the_radius_to_the_documented_250nm_maximum():
 
 async def test_aggregator_serves_the_last_good_response_rather_than_blanking():
     ok = httpx.Response(200, json={"ac": [{"hex": "4ca7b5", "lat": 53.4, "lon": -6.3}]})
-    source = aggregator(
-        sequence_transport([ok, httpx.Response(500, json={})]), attempts=1
-    )
+    source = aggregator(sequence_transport([ok, httpx.Response(500, json={})]), attempts=1)
     first = await source.fetch(*DUBLIN, 30)
     second = await source.fetch(*DUBLIN, 30)
     assert [ac.hex for ac in second] == [ac.hex for ac in first]
@@ -196,8 +194,14 @@ async def test_mock_empty_sky_fixture_is_genuinely_empty(fixture_dir):
 
 async def test_mock_covers_every_scenario_the_spec_requires(fixture_dir):
     source = MockSource(fixture_dir)
-    assert {"dublin_approach", "single_distant", "empty_sky", "military", "helicopter",
-            "no_route"} <= set(source.fixtures)
+    assert {
+        "dublin_approach",
+        "single_distant",
+        "empty_sky",
+        "military",
+        "helicopter",
+        "no_route",
+    } <= set(source.fixtures)
 
 
 async def test_mock_hands_out_copies_so_callers_cannot_corrupt_the_fixture(fixture_dir):

@@ -228,13 +228,51 @@ def build_empty(
                 scroll="none",
             ),
             FrameLine(
-                text=f"WITHIN {round(settings.scan_radius)}"
-                f"{settings.distance_unit.upper()}",
+                text=f"WITHIN {round(settings.scan_radius)}{settings.distance_unit.upper()}",
                 colour=_night_adjust(DIM_COLOUR, settings),
                 style="body",
                 scroll="none",
             ),
         ],
+        status=status,
+        note=note,
+        **_envelope(settings, now),  # type: ignore[arg-type]
+    )
+
+
+def build_searching(
+    ident: str,
+    settings: Settings,
+    *,
+    source: str,
+    status: FrameStatus = "live",
+    note: str | None = None,
+    now: datetime | None = None,
+) -> DisplayFrame:
+    """Tracking is armed but the flight hasn't been picked up yet.
+
+    Deliberately not the nearest aircraft: a progress bar for BA249 sitting under some
+    other airline's name is worse than saying nothing has been found.
+    """
+    now = now or _now()
+    return DisplayFrame(
+        mode="tracking",
+        source=source,
+        lines=[
+            FrameLine(
+                text=ident.upper(),
+                colour=_night_adjust(BODY_COLOUR, settings),
+                style="title",
+                scroll="auto",
+            ),
+            FrameLine(
+                text="SEARCHING",
+                colour=_night_adjust(DIM_COLOUR, settings),
+                style="body",
+                scroll="none",
+            ),
+        ],
+        progress=None,
         status=status,
         note=note,
         **_envelope(settings, now),  # type: ignore[arg-type]

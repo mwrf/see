@@ -116,9 +116,7 @@ SOURCE_MODES: frozenset[str] = frozenset({"local", "aggregator", "mock", "auto"}
 def _source_mode(raw: Any) -> SourceMode:
     """Validate at load time so a typo is a startup error, not a mystery empty panel."""
     if raw not in SOURCE_MODES:
-        raise ValueError(
-            f"unknown source mode {raw!r}; expected one of {sorted(SOURCE_MODES)}"
-        )
+        raise ValueError(f"unknown source mode {raw!r}; expected one of {sorted(SOURCE_MODES)}")
     mode: SourceMode = raw
     return mode
 

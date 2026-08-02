@@ -1,0 +1,30 @@
+{
+  "mode": "nearest",
+  "source": "local",
+  "generated_at": "2026-08-02T09:14:03Z",
+  "lines": [
+    {
+      "text": "US AIR MOBILITY COMMAND",
+      "colour": "#5a6b3c",
+      "style": "title",
+      "scroll": "auto"
+    },
+    {
+      "text": "RCH285",
+      "colour": "#c8c8c8",
+      "style": "body",
+      "scroll": "auto"
+    },
+    {
+      "text": "26,000FT  410KT  14MI",
+      "colour": "#808080",
+      "style": "body",
+      "scroll": "auto"
+    }
+  ],
+  "progress": null,
+  "status": "live",
+  "brightness": 60,
+  "poll_interval_s": 5.0,
+  "note": null
+}

@@ -1,0 +1,33 @@
+{
+  "mode": "tracking",
+  "source": "local",
+  "generated_at": "2026-08-02T09:14:03Z",
+  "lines": [
+    {
+      "text": "BRITISH AIRWAYS",
+      "colour": "#075aaa",
+      "style": "title",
+      "scroll": "auto"
+    },
+    {
+      "text": "BA832  DUB\u2192LHR  A320",
+      "colour": "#c8c8c8",
+      "style": "body",
+      "scroll": "auto"
+    },
+    {
+      "text": "11,000FT  301KT  8.9MI",
+      "colour": "#808080",
+      "style": "body",
+      "scroll": "auto"
+    }
+  ],
+  "progress": {
+    "fraction": 0.62,
+    "eta": "13:14"
+  },
+  "status": "live",
+  "brightness": 60,
+  "poll_interval_s": 5.0,
+  "note": null
+}

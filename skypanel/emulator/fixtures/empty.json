@@ -1,0 +1,24 @@
+{
+  "mode": "empty",
+  "source": "local",
+  "generated_at": "2026-08-02T09:14:03Z",
+  "lines": [
+    {
+      "text": "NO AIRCRAFT",
+      "colour": "#808080",
+      "style": "title",
+      "scroll": "none"
+    },
+    {
+      "text": "WITHIN 30MI",
+      "colour": "#808080",
+      "style": "body",
+      "scroll": "none"
+    }
+  ],
+  "progress": null,
+  "status": "live",
+  "brightness": 60,
+  "poll_interval_s": 5.0,
+  "note": null
+}

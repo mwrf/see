@@ -1,0 +1,30 @@
+{
+  "mode": "nearest",
+  "source": "aggregator",
+  "generated_at": "2026-08-02T09:14:03Z",
+  "lines": [
+    {
+      "text": "RYANAIR",
+      "colour": "#073590",
+      "style": "title",
+      "scroll": "auto"
+    },
+    {
+      "text": "FR1812  Dublin\u2192London  B738",
+      "colour": "#c8c8c8",
+      "style": "body",
+      "scroll": "auto"
+    },
+    {
+      "text": "732M  330KM/H  5.6KM",
+      "colour": "#808080",
+      "style": "body",
+      "scroll": "auto"
+    }
+  ],
+  "progress": null,
+  "status": "live",
+  "brightness": 60,
+  "poll_interval_s": 5.0,
+  "note": null
+}

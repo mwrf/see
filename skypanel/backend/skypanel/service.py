@@ -23,7 +23,7 @@ from .models import Aircraft, Category, DisplayFrame, EnrichedAircraft, FrameSta
 from .settings import Settings, SettingsStore
 from .sources import SourceManager
 from .sources.base import SourceError
-from .tracking import Tracker
+from .tracking import Tracker, TrackingState
 from .units import to_nm
 
 log = logging.getLogger(__name__)
@@ -65,6 +65,7 @@ class PanelService:
         self._frame: DisplayFrame | None = None
         self._last_ok_at: float | None = None
         self._selected: EnrichedAircraft | None = None
+        self._tracked: EnrichedAircraft | None = None
         self._last_aircraft: list[Aircraft] = []
         self._lock = asyncio.Lock()
         self._task: asyncio.Task[None] | None = None
@@ -115,8 +116,13 @@ class PanelService:
             enriched = await self.enricher.enrich(match) if match is not None else None
             state = self.tracker.update(enriched)
             if state is not None:
-                # Keep showing the last known position while it is briefly out of range.
-                return (enriched or self._selected), True
+                if enriched is not None:
+                    self._tracked = enriched
+                # Keep the last known position while the flight is briefly out of range,
+                # but never fall back to whatever was on screen before: showing a
+                # different airline under this flight's progress bar is worse than
+                # admitting we haven't found it yet.
+                return (self._tracked if state.seen else None), True
 
         allowed = set(settings.categories)
         candidates = aircraft
@@ -141,9 +147,13 @@ class PanelService:
         note = self.sources.attribution()
         status = self._status()
 
-        if is_tracked and self.tracker.state is not None and selected is not None:
-            return frame_builder.build_tracking(
-                selected, settings, self.tracker.state, source=source, status=status, note=note
+        if is_tracked and self.tracker.state is not None:
+            if selected is not None:
+                return frame_builder.build_tracking(
+                    selected, settings, self.tracker.state, source=source, status=status, note=note
+                )
+            return frame_builder.build_searching(
+                self.tracker.state.ident, settings, source=source, status=status, note=note
             )
         if selected is None:
             return frame_builder.build_empty(settings, source=source, status=status, note=note)
@@ -193,6 +203,17 @@ class PanelService:
     @property
     def last_aircraft(self) -> list[Aircraft]:
         return list(self._last_aircraft)
+
+    # ---------------------------------------------------------------- tracking
+
+    def start_tracking(self, ident: str) -> TrackingState:
+        """Begin tracking `ident`, forgetting any aircraft tracked before it."""
+        self._tracked = None
+        return self.tracker.start(ident)
+
+    def stop_tracking(self) -> None:
+        self._tracked = None
+        self.tracker.cancel()
 
     def rebuild(self) -> DisplayFrame:
         """Re-render the current selection, e.g. after a settings change."""

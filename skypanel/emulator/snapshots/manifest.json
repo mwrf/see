@@ -1,0 +1,37 @@
+{
+  "_comment": [
+    "Golden-image cases. Each renders through the real emulator binary and is compared",
+    "pixel for pixel against the committed PNG next to this file.",
+    "",
+    "Frames come from emulator/fixtures/, which is regenerated from the backend's own",
+    "aircraft fixtures by `just export-frames` — so a change to units, colours or field",
+    "selection lands here rather than drifting silently.",
+    "",
+    "Scale 6 keeps the files small while still showing the LED gap. Bloom is off",
+    "everywhere except the one case that exists to exercise it."
+  ],
+  "cases": [
+    {"name": "nearest_ryanair", "frame": "ryanair.json", "time_ms": 0},
+    {"name": "nearest_ryanair_scrolled", "frame": "ryanair.json", "time_ms": 3000},
+    {"name": "nearest_distant", "frame": "distant.json", "time_ms": 0},
+    {"name": "nearest_military", "frame": "military.json", "time_ms": 0},
+    {"name": "nearest_helicopter", "frame": "helicopter.json", "time_ms": 0},
+    {"name": "nearest_no_route", "frame": "no_route.json", "time_ms": 0},
+    {"name": "empty_sky", "frame": "empty.json", "time_ms": 0},
+    {"name": "error_offline", "frame": "error.json", "time_ms": 0},
+    {"name": "tracking_progress", "frame": "tracking.json", "time_ms": 0},
+    {"name": "metric_units", "frame": "metric.json", "time_ms": 0},
+
+    {"name": "scroll_head", "frame": "scrolling.json", "time_ms": 0},
+    {"name": "scroll_middle", "frame": "scrolling.json", "time_ms": 2500},
+    {"name": "scroll_tail", "frame": "scrolling.json", "time_ms": 6000},
+
+    {"name": "dim_night_brightness", "frame": "ryanair.json", "time_ms": 0, "brightness": 12},
+    {"name": "no_gamma_table", "frame": "ryanair.json", "time_ms": 0, "gamma": 1.0},
+    {"name": "pitch_p3", "frame": "ryanair.json", "time_ms": 0, "pitch": "P3"},
+    {"name": "with_bloom", "frame": "ryanair.json", "time_ms": 0, "bloom": true},
+
+    {"name": "scenario_first", "scenario": "busy.jsonl", "time_ms": 0},
+    {"name": "scenario_third", "scenario": "busy.jsonl", "time_ms": 4000}
+  ]
+}

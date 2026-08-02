@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SkyPanel — emulator</title>
+<style>
+  body {
+    margin: 0; min-height: 100vh; background: #0b0d10; color: #8b949e;
+    font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+    display: grid; place-items: center; gap: 1rem; padding: 2rem;
+  }
+  canvas { image-rendering: pixelated; border-radius: .5rem; background: #000; max-width: 100%; }
+  #meta { display: flex; gap: 1rem; align-items: center; }
+  .dot { width: .6rem; height: .6rem; border-radius: 50%; background: #6e7681; }
+  .dot.live { background: #3fb950; } .dot.stale { background: #d29922; }
+  .dot.offline { background: #f85149; }
+  #hint { font-size: .8rem; opacity: .6; }
+</style>
+</head>
+<body>
+  <canvas id="panel" width="640" height="320"></canvas>
+  <div id="meta"><span class="dot" id="dot"></span><span id="source">connecting…</span></div>
+  <div id="hint">Colours arrive gamma- and brightness-corrected; this page only draws the dots.
+    The SDL window and the PNG snapshots remain the reference rendering.</div>
+<script>
+"use strict";
+const CELL = 10, FILL = 0.58;
+const canvas = document.getElementById("panel");
+const ctx = canvas.getContext("2d");
+const dot = document.getElementById("dot");
+const source = document.getElementById("source");
+
+function draw(width, height, bytes) {
+  canvas.width = width * CELL;
+  canvas.height = height * CELL;
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const radius = (CELL * FILL) / 2;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 3;
+      const r = bytes[i], g = bytes[i + 1], b = bytes[i + 2];
+      if ((r | g | b) === 0) continue;
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.beginPath();
+      ctx.arc(x * CELL + CELL / 2, y * CELL + CELL / 2, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+}
+
+function connect() {
+  const ws = new WebSocket(`ws://${location.host}/ws`);
+  ws.onmessage = (event) => {
+    const frame = JSON.parse(event.data);
+    const binary = atob(frame.px);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    draw(frame.w, frame.h, bytes);
+    dot.className = "dot " + frame.status;
+    source.textContent = `source: ${frame.source} · ${frame.status}`;
+  };
+  ws.onclose = () => {
+    dot.className = "dot offline";
+    source.textContent = "emulator disconnected — retrying";
+    setTimeout(connect, 1000);
+  };
+}
+connect();
+</script>
+</body>
+</html>

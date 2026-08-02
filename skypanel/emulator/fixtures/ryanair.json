@@ -1,0 +1,30 @@
+{
+  "mode": "nearest",
+  "source": "local",
+  "generated_at": "2026-08-02T09:14:03Z",
+  "lines": [
+    {
+      "text": "RYANAIR",
+      "colour": "#073590",
+      "style": "title",
+      "scroll": "auto"
+    },
+    {
+      "text": "FR1812  DUB\u2192STN  B738",
+      "colour": "#c8c8c8",
+      "style": "body",
+      "scroll": "auto"
+    },
+    {
+      "text": "2,400FT  178KT  3.5MI",
+      "colour": "#808080",
+      "style": "body",
+      "scroll": "auto"
+    }
+  ],
+  "progress": null,
+  "status": "live",
+  "brightness": 60,
+  "poll_interval_s": 5.0,
+  "note": null
+}

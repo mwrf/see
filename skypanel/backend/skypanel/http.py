@@ -158,8 +158,9 @@ class HttpClient:
                 await asyncio.sleep(self.retry.delay_for(attempt))
 
         status = last.status if isinstance(last, HttpError) else None
-        raise HttpError(f"GET {url} failed after {self.retry.attempts} attempts: {last}",
-                        status=status, url=url) from last
+        raise HttpError(
+            f"GET {url} failed after {self.retry.attempts} attempts: {last}", status=status, url=url
+        ) from last
 
 
 def _retry_after(response: httpx.Response) -> float | None:

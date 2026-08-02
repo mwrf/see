@@ -1,0 +1,30 @@
+{
+  "mode": "nearest",
+  "source": "local",
+  "generated_at": "2026-08-02T09:14:03Z",
+  "lines": [
+    {
+      "text": "LUFTHANSA",
+      "colour": "#f9ba00",
+      "style": "title",
+      "scroll": "auto"
+    },
+    {
+      "text": "LH991  MUC\u2192DUB  A333",
+      "colour": "#c8c8c8",
+      "style": "body",
+      "scroll": "auto"
+    },
+    {
+      "text": "37,000FT  466KT  80MI",
+      "colour": "#808080",
+      "style": "body",
+      "scroll": "auto"
+    }
+  ],
+  "progress": null,
+  "status": "live",
+  "brightness": 60,
+  "poll_interval_s": 5.0,
+  "note": null
+}

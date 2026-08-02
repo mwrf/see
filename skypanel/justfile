@@ -1,0 +1,113 @@
+# SkyPanel task runner.  https://just.systems
+#
+# Every recipe is a plain shell command — if you'd rather not install `just`, run the
+# body directly. `just --list` shows them all.
+
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+backend := "backend"
+emu := "emulator"
+build := "emulator/build"
+
+default:
+    @just --list
+
+# ------------------------------------------------------------------------ setup
+
+# Install backend dependencies and configure the native build.
+setup: setup-backend configure
+
+setup-backend:
+    cd {{backend}} && uv sync
+
+# Configure the CMake build for the emulator and the shared renderer.
+configure:
+    cmake -B {{build}} -S {{emu}} -DCMAKE_BUILD_TYPE=Release
+
+# ------------------------------------------------------------------------ build
+
+# Build the emulator and the native test binary.
+build: configure
+    cmake --build {{build}} -j
+
+# Re-generate the bitmap fonts from their source-of-truth generator.
+fonts:
+    cd firmware/lib/render/fonts && python3 generate_fonts.py > Fonts.cpp
+    @echo "regenerated Fonts.cpp — run 'just test' and review the snapshot diff"
+
+# ------------------------------------------------------------------------- test
+
+# Everything: backend, native renderer, golden images.
+test: test-backend test-native test-snapshots
+
+test-backend:
+    cd {{backend}} && uv run pytest -q
+
+test-native: build
+    {{build}}/render_tests
+
+test-snapshots: build
+    python3 tools/snapshots.py
+
+# Accept the current renderer output as the new golden images.
+approve-snapshots: build
+    python3 tools/snapshots.py --approve
+
+# ------------------------------------------------------------------------- lint
+
+lint: lint-backend
+
+lint-backend:
+    cd {{backend}} && uv run ruff check .
+    cd {{backend}} && uv run ruff format --check .
+    cd {{backend}} && uv run mypy
+
+fmt:
+    cd {{backend}} && uv run ruff check --fix .
+    cd {{backend}} && uv run ruff format .
+
+# -------------------------------------------------------------------------- run
+
+# Run the backend. Reads backend/config.toml; mock source by default.
+serve *ARGS:
+    cd {{backend}} && uv run skypanel-serve {{ARGS}}
+
+# Run the emulator against a live backend.
+emu *ARGS: build
+    {{build}}/skypanel-emu --backend http://localhost:8000 {{ARGS}}
+
+# Render one frame file in a window.
+show FRAME="emulator/fixtures/ryanair.json": build
+    {{build}}/skypanel-emu --frame {{FRAME}}
+
+# Replay the recorded scenario at 4x.
+scenario: build
+    {{build}}/skypanel-emu --scenario emulator/fixtures/busy.jsonl --speed 4
+
+# Record a GIF of the scenario, for the README.
+record OUT="skypanel.gif": build
+    {{build}}/skypanel-emu --scenario emulator/fixtures/busy.jsonl --record {{OUT}} --duration 20
+
+# -------------------------------------------------------------------------- data
+
+# Record real aircraft.json snapshots from a receiver into backend/data/fixtures.
+capture-fixtures NAME HOST="":
+    cd {{backend}} && uv run skypanel-capture --name {{NAME}} {{ if HOST == "" { "" } else { "--host " + HOST } }}
+
+# Rebuild emulator/fixtures/*.json from the backend's aircraft fixtures.
+export-frames:
+    cd {{backend}} && uv run python tools/export_frames.py
+
+# Add or update an airline brand colour: just add-airline RYR Ryanair '#073590'
+add-airline ICAO NAME COLOUR:
+    cd {{backend}} && uv run skypanel-airline {{ICAO}} {{NAME}} {{COLOUR}}
+
+# Reduce a full OurAirports export to the columns this project reads.
+reduce-airports CSV:
+    cd {{backend}} && uv run python tools/reduce_airports.py {{CSV}}
+
+# ------------------------------------------------------------------------ clean
+
+clean:
+    rm -rf {{build}} {{backend}}/.pytest_cache {{backend}}/.mypy_cache {{backend}}/.ruff_cache
+    find . -name __pycache__ -type d -prune -exec rm -rf {} +
