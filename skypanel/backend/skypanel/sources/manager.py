@@ -60,6 +60,11 @@ class SourceManager:
         self.last_error: str | None = None
 
     @property
+    def active(self) -> AircraftSource:
+        """The source that served, or will serve, the current frame."""
+        return self._active
+
+    @property
     def active_name(self) -> str:
         return self._active.name
 

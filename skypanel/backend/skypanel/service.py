@@ -282,16 +282,13 @@ class SkyPanelService:
         }
 
     def attribution(self) -> str | None:
-        """Provider credit, shown wherever the terms require it."""
-        source = self.manager.primary if self.manager.active_name == "local" else None
-        if source is not None:
-            return None
-        fallback = self.manager.fallback
-        attribution = getattr(fallback, "attribution", None)
-        if self.manager.active_name == "aggregator" and isinstance(attribution, str):
-            return attribution
-        primary_attr = getattr(self.manager.primary, "attribution", None)
-        return primary_attr if isinstance(primary_attr, str) else None
+        """Provider credit for whichever source served the current frame.
+
+        Only the aggregators carry one -- adsb.fi and adsb.lol both require it,
+        and your own receiver requires nothing of you.
+        """
+        credit = getattr(self.manager.active, "attribution", None)
+        return credit if isinstance(credit, str) and credit else None
 
 
 def _searching_title(session: TrackingSession) -> Any:

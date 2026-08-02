@@ -180,6 +180,34 @@ def test_a_dead_source_produces_an_error_frame_not_a_500(service):
     assert body["lines"][0]["text"]
 
 
+def test_attribution_is_shown_when_an_aggregator_serves_the_frame(service):
+    from skypanel.http import HttpClient, RetryPolicy
+    from skypanel.ratelimit import TokenBucket
+    from skypanel.sources.aggregator import AggregatorSource
+
+    from .cassettes import cassette_transport
+    from .test_http import FakeClock
+
+    aggregator = AggregatorSource(
+        "adsb_fi",
+        client=HttpClient(
+            retry=RetryPolicy(attempts=1), transport=cassette_transport("aggregator")
+        ),
+        bucket=TokenBucket(rate=1000.0, capacity=1000.0, clock=FakeClock()),
+    )
+    service.manager = SourceManager(
+        SourceConfig(mode="aggregator"), primary=aggregator, fallback=None
+    )
+    with TestClient(create_app(service)) as client:
+        meta = client.get("/api/settings").json()["meta"]
+    assert meta["attribution"] == "Data from adsb.fi"
+
+
+def test_no_attribution_is_claimed_for_your_own_receiver(client):
+    # A local receiver imposes no terms; showing a credit would be noise.
+    assert client.get("/api/settings").json()["meta"]["attribution"] is None
+
+
 def test_an_empty_sky_produces_an_empty_frame(service, fixture_dir):
     service.manager = SourceManager(
         SourceConfig(mode="mock"),

@@ -161,14 +161,14 @@ def _route_text(
 ) -> str | None:
     route = enriched.route
     prefer_cities = settings.route_display == "cities"
-    registry = airports
 
     def render(code: str | None, city: str | None) -> str | None:
+        """City name if the user asked for one and we have it; code otherwise."""
         if prefer_cities:
             if city:
                 return city.upper()
-            if registry is not None:
-                resolved = registry.city(code)
+            if airports is not None:
+                resolved = airports.city(code)
                 if resolved:
                     return resolved.upper()
         return code.upper() if code else None

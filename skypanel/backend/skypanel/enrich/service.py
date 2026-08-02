@@ -170,6 +170,10 @@ class EnrichmentService:
             if not aircraft.type_code or not aircraft.registration:
                 ac_record = await self.aircraft_for(aircraft.hex)
                 if ac_record:
+                    #  Backfilling onto the caller's Aircraft is deliberate: the
+                    #  poller hands us the same objects every second, and a type
+                    #  code that arrived from enrichment should not have to be
+                    #  looked up again on the next frame.
                     aircraft.type_code = aircraft.type_code or _str(ac_record.get("type_code"))
                     aircraft.registration = aircraft.registration or _str(
                         ac_record.get("registration")
