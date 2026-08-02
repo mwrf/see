@@ -1,0 +1,842 @@
+{
+  "AAL": {
+    "name": "American Airlines",
+    "rgb": "#0078d2"
+  },
+  "AAR": {
+    "name": "Asiana",
+    "rgb": "#c8102e"
+  },
+  "ABW": {
+    "name": "AirBridgeCargo",
+    "rgb": "#f47b20"
+  },
+  "ABY": {
+    "name": "Air Arabia",
+    "rgb": "#c8102e"
+  },
+  "ACA": {
+    "name": "Air Canada",
+    "rgb": "#d3232a"
+  },
+  "AEA": {
+    "name": "Air Europa",
+    "rgb": "#0c2f6b"
+  },
+  "AEE": {
+    "name": "Aegean",
+    "rgb": "#00539f"
+  },
+  "AFL": {
+    "name": "Aeroflot",
+    "rgb": "#00458b"
+  },
+  "AFR": {
+    "name": "Air France",
+    "rgb": "#002157"
+  },
+  "AHY": {
+    "name": "Azerbaijan Airlines",
+    "rgb": "#003876"
+  },
+  "AIC": {
+    "name": "Air India",
+    "rgb": "#c8102e"
+  },
+  "AMX": {
+    "name": "Aeroméxico",
+    "rgb": "#0b2265"
+  },
+  "ANA": {
+    "name": "All Nippon",
+    "rgb": "#003a8c"
+  },
+  "ANE": {
+    "name": "Air Nostrum",
+    "rgb": "#e30613"
+  },
+  "ANZ": {
+    "name": "Air New Zealand",
+    "rgb": "#00b0b9"
+  },
+  "APJ": {
+    "name": "Peach Aviation",
+    "rgb": "#a4227e"
+  },
+  "ARG": {
+    "name": "Aerolíneas Argentinas",
+    "rgb": "#00b0e6"
+  },
+  "ASA": {
+    "name": "Alaska Airlines",
+    "rgb": "#01426a"
+  },
+  "ASY": {
+    "name": "Australian Air Force",
+    "rgb": "#5a6b3c"
+  },
+  "AUA": {
+    "name": "Austrian",
+    "rgb": "#cc0000"
+  },
+  "AUI": {
+    "name": "Ukraine Intl",
+    "rgb": "#0057b8"
+  },
+  "AVA": {
+    "name": "Avianca",
+    "rgb": "#e4002b"
+  },
+  "AXM": {
+    "name": "AirAsia",
+    "rgb": "#e21836"
+  },
+  "AZA": {
+    "name": "ITA Airways",
+    "rgb": "#00477d"
+  },
+  "AZG": {
+    "name": "Silk Way West",
+    "rgb": "#0b3d91"
+  },
+  "AZO": {
+    "name": "Azimuth",
+    "rgb": "#00a0df"
+  },
+  "AZU": {
+    "name": "Azul",
+    "rgb": "#0033a0"
+  },
+  "BAF": {
+    "name": "Belgian Air Force",
+    "rgb": "#5a6b3c"
+  },
+  "BAV": {
+    "name": "Bamboo Airways",
+    "rgb": "#00a850"
+  },
+  "BAW": {
+    "name": "British Airways",
+    "rgb": "#075aaa"
+  },
+  "BBC": {
+    "name": "Biman Bangladesh",
+    "rgb": "#00693c"
+  },
+  "BCS": {
+    "name": "European Air Transport",
+    "rgb": "#ffcc00"
+  },
+  "BEE": {
+    "name": "Blue Islands",
+    "rgb": "#0072ce"
+  },
+  "BEL": {
+    "name": "Brussels Airlines",
+    "rgb": "#00b2a9"
+  },
+  "BER": {
+    "name": "Air Berlin",
+    "rgb": "#e2001a"
+  },
+  "BLA": {
+    "name": "Blue Air",
+    "rgb": "#0072ce"
+  },
+  "BOX": {
+    "name": "AeroLogic",
+    "rgb": "#d40511"
+  },
+  "BTI": {
+    "name": "airBaltic",
+    "rgb": "#98c21d"
+  },
+  "CAL": {
+    "name": "China Airlines",
+    "rgb": "#c8102e"
+  },
+  "CBJ": {
+    "name": "Capital Airlines",
+    "rgb": "#0071ce"
+  },
+  "CCA": {
+    "name": "Air China",
+    "rgb": "#c8102e"
+  },
+  "CEB": {
+    "name": "Cebu Pacific",
+    "rgb": "#fdb913"
+  },
+  "CES": {
+    "name": "China Eastern",
+    "rgb": "#c8102e"
+  },
+  "CFC": {
+    "name": "Canadian Forces",
+    "rgb": "#5a6b3c"
+  },
+  "CFE": {
+    "name": "BA CityFlyer",
+    "rgb": "#075aaa"
+  },
+  "CFG": {
+    "name": "Condor",
+    "rgb": "#f5df4d"
+  },
+  "CHH": {
+    "name": "Hainan Airlines",
+    "rgb": "#c8102e"
+  },
+  "CIM": {
+    "name": "Cimber",
+    "rgb": "#003d7d"
+  },
+  "CLH": {
+    "name": "Lufthansa CityLine",
+    "rgb": "#f9ba00"
+  },
+  "CLX": {
+    "name": "Cargolux",
+    "rgb": "#e2001a"
+  },
+  "CMP": {
+    "name": "Copa Airlines",
+    "rgb": "#0033a1"
+  },
+  "CPA": {
+    "name": "Cathay Pacific",
+    "rgb": "#006564"
+  },
+  "CQH": {
+    "name": "Spring Airlines",
+    "rgb": "#00a850"
+  },
+  "CSA": {
+    "name": "CSA Czech",
+    "rgb": "#003d7d"
+  },
+  "CSN": {
+    "name": "China Southern",
+    "rgb": "#0071ce"
+  },
+  "CSZ": {
+    "name": "Shenzhen Airlines",
+    "rgb": "#c8102e"
+  },
+  "CTM": {
+    "name": "French Air Force",
+    "rgb": "#5a6b3c"
+  },
+  "CTN": {
+    "name": "Croatia Airlines",
+    "rgb": "#c8102e"
+  },
+  "CXA": {
+    "name": "XiamenAir",
+    "rgb": "#0071ce"
+  },
+  "DAH": {
+    "name": "Air Algérie",
+    "rgb": "#00843d"
+  },
+  "DAL": {
+    "name": "Delta Air Lines",
+    "rgb": "#c8102e"
+  },
+  "DAT": {
+    "name": "Air Antwerp",
+    "rgb": "#00b2a9"
+  },
+  "DHK": {
+    "name": "DHL Air UK",
+    "rgb": "#ffcc00"
+  },
+  "DKH": {
+    "name": "Juneyao Airlines",
+    "rgb": "#c8102e"
+  },
+  "DLH": {
+    "name": "Lufthansa",
+    "rgb": "#f9ba00"
+  },
+  "EDV": {
+    "name": "Endeavor Air",
+    "rgb": "#c8102e"
+  },
+  "EDW": {
+    "name": "Edelweiss Air",
+    "rgb": "#e30613"
+  },
+  "EIN": {
+    "name": "Aer Lingus",
+    "rgb": "#00a65e"
+  },
+  "EJA": {
+    "name": "NetJets",
+    "rgb": "#b8860b"
+  },
+  "EJU": {
+    "name": "easyJet Europe",
+    "rgb": "#ff6600"
+  },
+  "ELL": {
+    "name": "Nordica",
+    "rgb": "#009fdf"
+  },
+  "ELY": {
+    "name": "El Al",
+    "rgb": "#0033a0"
+  },
+  "ENY": {
+    "name": "Envoy Air",
+    "rgb": "#0078d2"
+  },
+  "ETD": {
+    "name": "Etihad",
+    "rgb": "#bd8b13"
+  },
+  "ETH": {
+    "name": "Ethiopian",
+    "rgb": "#63b22d"
+  },
+  "EVA": {
+    "name": "EVA Air",
+    "rgb": "#00653a"
+  },
+  "EWG": {
+    "name": "Eurowings",
+    "rgb": "#b0217b"
+  },
+  "EXS": {
+    "name": "Jet2",
+    "rgb": "#e4002b"
+  },
+  "EZS": {
+    "name": "easyJet Switzerland",
+    "rgb": "#ff6600"
+  },
+  "EZY": {
+    "name": "easyJet",
+    "rgb": "#ff6600"
+  },
+  "FDB": {
+    "name": "flydubai",
+    "rgb": "#004b87"
+  },
+  "FDX": {
+    "name": "FedEx",
+    "rgb": "#4d148c"
+  },
+  "FFT": {
+    "name": "Frontier",
+    "rgb": "#00a850"
+  },
+  "FIA": {
+    "name": "Icelandair Connect",
+    "rgb": "#003a70"
+  },
+  "FIN": {
+    "name": "Finnair",
+    "rgb": "#0b1560"
+  },
+  "GAF": {
+    "name": "German Air Force",
+    "rgb": "#5a6b3c"
+  },
+  "GEC": {
+    "name": "Lufthansa Cargo",
+    "rgb": "#f9ba00"
+  },
+  "GEO": {
+    "name": "Georgian Airways",
+    "rgb": "#c8102e"
+  },
+  "GFA": {
+    "name": "Gulf Air",
+    "rgb": "#b8860b"
+  },
+  "GIA": {
+    "name": "Garuda Indonesia",
+    "rgb": "#00539b"
+  },
+  "GLO": {
+    "name": "GOL",
+    "rgb": "#ff7900"
+  },
+  "GMA": {
+    "name": "Gama Aviation",
+    "rgb": "#0072ce"
+  },
+  "GTI": {
+    "name": "Atlas Air",
+    "rgb": "#003087"
+  },
+  "GWI": {
+    "name": "Germanwings",
+    "rgb": "#b0217b"
+  },
+  "HAL": {
+    "name": "Hawaiian",
+    "rgb": "#4c2884"
+  },
+  "HBH": {
+    "name": "Hebei Airlines",
+    "rgb": "#0071ce"
+  },
+  "HDA": {
+    "name": "Hong Kong Dragon",
+    "rgb": "#006564"
+  },
+  "HFY": {
+    "name": "Hi Fly",
+    "rgb": "#0057b8"
+  },
+  "HKY": {
+    "name": "Hungarian Air Force",
+    "rgb": "#5a6b3c"
+  },
+  "HLE": {
+    "name": "Airlink",
+    "rgb": "#00539b"
+  },
+  "HSK": {
+    "name": "Sky Express",
+    "rgb": "#0a4d8c"
+  },
+  "HVN": {
+    "name": "Vietnam Airlines",
+    "rgb": "#0f4c81"
+  },
+  "HYS": {
+    "name": "Sky Angkor",
+    "rgb": "#0072ce"
+  },
+  "IAM": {
+    "name": "Italian Air Force",
+    "rgb": "#5a6b3c"
+  },
+  "IBE": {
+    "name": "Iberia",
+    "rgb": "#d7192d"
+  },
+  "IBS": {
+    "name": "Iberia Express",
+    "rgb": "#d7192d"
+  },
+  "ICE": {
+    "name": "Icelandair",
+    "rgb": "#003a70"
+  },
+  "IGO": {
+    "name": "IndiGo",
+    "rgb": "#001b94"
+  },
+  "ITY": {
+    "name": "ITA Airways",
+    "rgb": "#00477d"
+  },
+  "JAF": {
+    "name": "TUI fly Belgium",
+    "rgb": "#003c8f"
+  },
+  "JAL": {
+    "name": "Japan Airlines",
+    "rgb": "#c8102e"
+  },
+  "JBU": {
+    "name": "JetBlue",
+    "rgb": "#003876"
+  },
+  "JIA": {
+    "name": "PSA Airlines",
+    "rgb": "#0078d2"
+  },
+  "JJP": {
+    "name": "Jetstar Japan",
+    "rgb": "#ff5307"
+  },
+  "JST": {
+    "name": "Jetstar",
+    "rgb": "#ff5307"
+  },
+  "JZR": {
+    "name": "Jazeera Airways",
+    "rgb": "#00a99d"
+  },
+  "KAC": {
+    "name": "Kuwait Airways",
+    "rgb": "#004b87"
+  },
+  "KAL": {
+    "name": "Korean Air",
+    "rgb": "#00256c"
+  },
+  "KLC": {
+    "name": "KLM Cityhopper",
+    "rgb": "#00a1de"
+  },
+  "KLM": {
+    "name": "KLM",
+    "rgb": "#00a1de"
+  },
+  "KQA": {
+    "name": "Kenya Airways",
+    "rgb": "#c8102e"
+  },
+  "KZR": {
+    "name": "Air Astana",
+    "rgb": "#00539b"
+  },
+  "LAN": {
+    "name": "LATAM",
+    "rgb": "#1b0088"
+  },
+  "LNX": {
+    "name": "Luxaviation",
+    "rgb": "#1b3a5c"
+  },
+  "LOG": {
+    "name": "Loganair",
+    "rgb": "#003b5c"
+  },
+  "LOT": {
+    "name": "LOT Polish",
+    "rgb": "#11397d"
+  },
+  "LXJ": {
+    "name": "Flexjet",
+    "rgb": "#c0a062"
+  },
+  "LZB": {
+    "name": "Bulgaria Air",
+    "rgb": "#0b3d91"
+  },
+  "MAC": {
+    "name": "Air Arabia Maroc",
+    "rgb": "#c8102e"
+  },
+  "MAS": {
+    "name": "Malaysia Airlines",
+    "rgb": "#00519e"
+  },
+  "MAU": {
+    "name": "Air Mauritius",
+    "rgb": "#c8102e"
+  },
+  "MDA": {
+    "name": "Mandarin Airlines",
+    "rgb": "#c8102e"
+  },
+  "MEA": {
+    "name": "Middle East Airlines",
+    "rgb": "#c8102e"
+  },
+  "MLD": {
+    "name": "Air Moldova",
+    "rgb": "#0057b8"
+  },
+  "MMF": {
+    "name": "MRTT Fleet",
+    "rgb": "#5a6b3c"
+  },
+  "MPH": {
+    "name": "Martinair",
+    "rgb": "#00a1de"
+  },
+  "MSR": {
+    "name": "EgyptAir",
+    "rgb": "#00447c"
+  },
+  "NAF": {
+    "name": "NATO",
+    "rgb": "#5a6b3c"
+  },
+  "NAX": {
+    "name": "Norwegian",
+    "rgb": "#d81939"
+  },
+  "NCA": {
+    "name": "Nippon Cargo",
+    "rgb": "#c8102e"
+  },
+  "NJE": {
+    "name": "NetJets Europe",
+    "rgb": "#b8860b"
+  },
+  "NKS": {
+    "name": "Spirit",
+    "rgb": "#ffec00"
+  },
+  "NOZ": {
+    "name": "Norwegian Air Sweden",
+    "rgb": "#d81939"
+  },
+  "NSZ": {
+    "name": "Norwegian Air Intl",
+    "rgb": "#d81939"
+  },
+  "OAL": {
+    "name": "Olympic Air",
+    "rgb": "#0a4d8c"
+  },
+  "OMA": {
+    "name": "Oman Air",
+    "rgb": "#8c1d40"
+  },
+  "ONE": {
+    "name": "Fly One",
+    "rgb": "#e4002b"
+  },
+  "PAL": {
+    "name": "Philippine Airlines",
+    "rgb": "#0033a0"
+  },
+  "PAT": {
+    "name": "US Army Priority Air",
+    "rgb": "#5a6b3c"
+  },
+  "PGA": {
+    "name": "Portugalia",
+    "rgb": "#00a04b"
+  },
+  "PGT": {
+    "name": "Pegasus",
+    "rgb": "#ffc400"
+  },
+  "PIA": {
+    "name": "Pakistan Intl",
+    "rgb": "#00563f"
+  },
+  "POE": {
+    "name": "Porter Airlines",
+    "rgb": "#1c2b39"
+  },
+  "QFA": {
+    "name": "Qantas",
+    "rgb": "#e40000"
+  },
+  "QLK": {
+    "name": "QantasLink",
+    "rgb": "#e40000"
+  },
+  "QTR": {
+    "name": "Qatar Airways",
+    "rgb": "#5c0632"
+  },
+  "RAM": {
+    "name": "Royal Air Maroc",
+    "rgb": "#c8102e"
+  },
+  "RCH": {
+    "name": "US Air Mobility Command",
+    "rgb": "#5a6b3c"
+  },
+  "RJA": {
+    "name": "Royal Jordanian",
+    "rgb": "#5c2d33"
+  },
+  "ROT": {
+    "name": "TAROM",
+    "rgb": "#003876"
+  },
+  "ROU": {
+    "name": "Air Canada Rouge",
+    "rgb": "#d3232a"
+  },
+  "RPA": {
+    "name": "Republic Airways",
+    "rgb": "#00457c"
+  },
+  "RRR": {
+    "name": "RAF Air Mobility",
+    "rgb": "#5a6b3c"
+  },
+  "RXA": {
+    "name": "Rex Airlines",
+    "rgb": "#c8102e"
+  },
+  "RYR": {
+    "name": "Ryanair",
+    "rgb": "#073590"
+  },
+  "SAA": {
+    "name": "South African Airways",
+    "rgb": "#003399"
+  },
+  "SAS": {
+    "name": "SAS",
+    "rgb": "#003d7d"
+  },
+  "SBI": {
+    "name": "S7 Airlines",
+    "rgb": "#93c020"
+  },
+  "SDA": {
+    "name": "Shandong Airlines",
+    "rgb": "#0071ce"
+  },
+  "SDR": {
+    "name": "Sundair",
+    "rgb": "#f7a800"
+  },
+  "SEY": {
+    "name": "Air Seychelles",
+    "rgb": "#c8102e"
+  },
+  "SHT": {
+    "name": "BA Shuttle",
+    "rgb": "#075aaa"
+  },
+  "SIA": {
+    "name": "Singapore Airlines",
+    "rgb": "#f7a800"
+  },
+  "SJX": {
+    "name": "Spring Japan",
+    "rgb": "#00a850"
+  },
+  "SKW": {
+    "name": "SkyWest",
+    "rgb": "#003b5c"
+  },
+  "SLK": {
+    "name": "Scoot",
+    "rgb": "#ffcc00"
+  },
+  "SUS": {
+    "name": "Sun-Air",
+    "rgb": "#075aaa"
+  },
+  "SVA": {
+    "name": "Saudia",
+    "rgb": "#00693c"
+  },
+  "SWA": {
+    "name": "Southwest",
+    "rgb": "#304cb2"
+  },
+  "SWR": {
+    "name": "SWISS",
+    "rgb": "#e30613"
+  },
+  "SWT": {
+    "name": "Swiftair Hellas",
+    "rgb": "#f7a800"
+  },
+  "SXS": {
+    "name": "SunExpress",
+    "rgb": "#0033a0"
+  },
+  "TAM": {
+    "name": "LATAM Brasil",
+    "rgb": "#1b0088"
+  },
+  "TAP": {
+    "name": "TAP Air Portugal",
+    "rgb": "#00a04b"
+  },
+  "TAR": {
+    "name": "Tunisair",
+    "rgb": "#d61c26"
+  },
+  "TFL": {
+    "name": "TUI fly Netherlands",
+    "rgb": "#003c8f"
+  },
+  "THA": {
+    "name": "Thai Airways",
+    "rgb": "#520a76"
+  },
+  "THY": {
+    "name": "Turkish Airlines",
+    "rgb": "#c70a0c"
+  },
+  "TRA": {
+    "name": "Transavia",
+    "rgb": "#00d264"
+  },
+  "TSC": {
+    "name": "Air Transat",
+    "rgb": "#0075c9"
+  },
+  "TUI": {
+    "name": "TUI Airways",
+    "rgb": "#003c8f"
+  },
+  "TVF": {
+    "name": "Transavia France",
+    "rgb": "#00d264"
+  },
+  "UAE": {
+    "name": "Emirates",
+    "rgb": "#d71921"
+  },
+  "UAL": {
+    "name": "United Airlines",
+    "rgb": "#005daa"
+  },
+  "UPS": {
+    "name": "UPS",
+    "rgb": "#351c15"
+  },
+  "UTA": {
+    "name": "UTair",
+    "rgb": "#0072bc"
+  },
+  "UZB": {
+    "name": "Uzbekistan Airways",
+    "rgb": "#0057b8"
+  },
+  "VIR": {
+    "name": "Virgin Atlantic",
+    "rgb": "#e10a0a"
+  },
+  "VJC": {
+    "name": "VietJet",
+    "rgb": "#e4002b"
+  },
+  "VJT": {
+    "name": "VistaJet",
+    "rgb": "#b0001f"
+  },
+  "VLE": {
+    "name": "Volotea",
+    "rgb": "#98002e"
+  },
+  "VLG": {
+    "name": "Vueling",
+    "rgb": "#ffcc00"
+  },
+  "VOI": {
+    "name": "Volaris",
+    "rgb": "#7f2d8b"
+  },
+  "VOZ": {
+    "name": "Virgin Australia",
+    "rgb": "#c8102e"
+  },
+  "VTI": {
+    "name": "Vistara",
+    "rgb": "#4b286d"
+  },
+  "WAT": {
+    "name": "Swiftair",
+    "rgb": "#f7a800"
+  },
+  "WJA": {
+    "name": "WestJet",
+    "rgb": "#0f4c81"
+  },
+  "WUK": {
+    "name": "Wizz Air UK",
+    "rgb": "#c6007e"
+  },
+  "WZZ": {
+    "name": "Wizz Air",
+    "rgb": "#c6007e"
+  },
+  "XAX": {
+    "name": "AirAsia X",
+    "rgb": "#e21836"
+  }
+}

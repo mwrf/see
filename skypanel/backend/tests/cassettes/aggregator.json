@@ -1,0 +1,50 @@
+{
+ "GET /v2/lat/53.3498/lon/-6.2603/dist/30": {
+  "status": 200,
+  "json": {
+   "ac": [
+    {
+     "hex": "4ca7b5",
+     "flight": "RYR1812 ",
+     "lat": 53.3901,
+     "lon": -6.312,
+     "alt_baro": 2400,
+     "gs": 178.0,
+     "track": 282.1,
+     "baro_rate": -960,
+     "squawk": "4213",
+     "t": "B738",
+     "r": "EI-DAA",
+     "category": "A3",
+     "seen_pos": 0.8
+    },
+    {
+     "hex": "406a2f",
+     "flight": "BAW832  ",
+     "lat": 53.2801,
+     "lon": -6.4402,
+     "alt_baro": 11000,
+     "gs": 301.4,
+     "track": 45.0,
+     "baro_rate": 1280,
+     "squawk": "5312",
+     "category": "A3",
+     "seen_pos": 1.9
+    },
+    {
+     "hex": "ffffff",
+     "flight": "STALE1  ",
+     "lat": 53.3,
+     "lon": -6.3,
+     "alt_baro": 5000,
+     "seen_pos": 120.0
+    }
+   ],
+   "msg": "No error",
+   "now": 1754125000123,
+   "total": 3,
+   "ctime": 1754125000123,
+   "ptime": 4
+  }
+ }
+}

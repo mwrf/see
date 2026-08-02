@@ -1,0 +1,41 @@
+{
+ "now": 1754125000.0,
+ "messages": 1234567,
+ "aircraft": [
+  {
+   "hex": "ae1234",
+   "type": "adsb_icao",
+   "seen_pos": 1.2,
+   "seen": 0.3,
+   "rssi": -18.4,
+   "messages": 842,
+   "flight": "RCH285  ",
+   "lat": 53.441,
+   "lon": -6.5502,
+   "alt_baro": 26000,
+   "gs": 410,
+   "track": 265,
+   "baro_rate": 0,
+   "squawk": "7777",
+   "category": "A5"
+  },
+  {
+   "hex": "43c7e1",
+   "type": "adsb_icao",
+   "seen_pos": 1.2,
+   "seen": 0.3,
+   "rssi": -18.4,
+   "messages": 842,
+   "flight": "RRR7211 ",
+   "lat": 53.5801,
+   "lon": -6.701,
+   "alt_baro": 21000,
+   "gs": 384,
+   "track": 88,
+   "baro_rate": -640,
+   "squawk": "6402",
+   "category": "A5"
+  }
+ ],
+ "_skypanel_note": "synthesised fixture, dump1090-fa v9 schema"
+}

@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SkyPanel</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --line: #30363d; --text: #e6edf3;
+    --muted: #8b949e; --accent: #58a6ff; --ok: #3fb950; --warn: #d29922; --bad: #f85149;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#f6f8fa; --panel:#fff; --line:#d0d7de; --text:#1f2328; --muted:#656d76; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0 0 3rem; background: var(--bg); color: var(--text);
+    font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+  header {
+    position: sticky; top: 0; z-index: 5; background: var(--panel);
+    border-bottom: 1px solid var(--line); padding: .75rem 1rem;
+    display: flex; align-items: center; gap: .6rem;
+  }
+  header h1 { font-size: 1.05rem; margin: 0; font-weight: 600; letter-spacing: .02em; }
+  header nav { margin-left: auto; display: flex; gap: .75rem; font-size: .85rem; }
+  header nav a { color: var(--accent); text-decoration: none; }
+  .dot { width: .6rem; height: .6rem; border-radius: 50%; background: var(--muted); flex: none; }
+  .dot.live { background: var(--ok); } .dot.stale { background: var(--warn); }
+  .dot.offline { background: var(--bad); }
+  main { max-width: 46rem; margin: 0 auto; padding: 1rem; display: grid; gap: 1rem; }
+  section {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: .7rem; padding: 1rem;
+  }
+  h2 { font-size: .78rem; text-transform: uppercase; letter-spacing: .09em;
+       color: var(--muted); margin: 0 0 .8rem; font-weight: 600; }
+  /* Panel preview: text and colour only. The emulator is the pixel-accurate view. */
+  #preview {
+    background: #000; border-radius: .4rem; padding: .7rem .8rem; overflow: hidden;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: .8rem; line-height: 1.35; white-space: nowrap;
+  }
+  #preview div { overflow: hidden; text-overflow: clip; }
+  #bar { height: .35rem; background: #222; border-radius: 2px; margin-top: .5rem; }
+  #bar > i { display: block; height: 100%; background: var(--accent); border-radius: 2px; }
+  .caption { color: var(--muted); font-size: .72rem; margin-top: .5rem; }
+  .grid { display: grid; gap: .85rem; grid-template-columns: 1fr; }
+  @media (min-width: 34rem) { .grid.two { grid-template-columns: 1fr 1fr; } }
+  label { display: block; font-size: .82rem; color: var(--muted); margin-bottom: .25rem; }
+  input, select, button {
+    font: inherit; color: var(--text); background: var(--bg);
+    border: 1px solid var(--line); border-radius: .45rem; padding: .55rem .6rem; width: 100%;
+  }
+  input[type=range] { padding: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .chip {
+    display: inline-flex; align-items: center; gap: .35rem; padding: .35rem .6rem;
+    border: 1px solid var(--line); border-radius: 999px; font-size: .82rem; cursor: pointer;
+    user-select: none; background: var(--bg);
+  }
+  .chip input { width: auto; margin: 0; }
+  .chip.on { border-color: var(--accent); color: var(--accent); }
+  .row { display: flex; gap: .6rem; align-items: center; }
+  button.primary { background: var(--accent); color: #04121f; border-color: transparent;
+                   font-weight: 600; }
+  button.ghost { background: transparent; }
+  .status { font-size: .8rem; color: var(--muted); min-height: 1.2em; }
+  dl { display: grid; grid-template-columns: auto 1fr; gap: .3rem .8rem;
+       margin: 0; font-size: .85rem; }
+  dt { color: var(--muted); } dd { margin: 0; font-variant-numeric: tabular-nums; }
+  .attrib { font-size: .74rem; color: var(--muted); }
+  footer { max-width: 46rem; margin: 0 auto; padding: 0 1rem; }
+</style>
+</head>
+<body>
+<header>
+  <span class="dot" id="statusDot"></span>
+  <h1>SkyPanel</h1>
+  <nav><a href="/history">History</a><a href="/healthz">Health</a></nav>
+</header>
+
+<main>
+  <section>
+    <h2>Now showing</h2>
+    <div id="preview"><div style="color:#666">connecting…</div></div>
+    <div id="bar" hidden><i style="width:0"></i></div>
+    <div class="caption" id="frameMeta"></div>
+    <div class="caption attrib" id="attrib"></div>
+  </section>
+
+  <section>
+    <h2>Track a flight</h2>
+    <div class="row">
+      <input id="ident" placeholder="BA249" autocapitalize="characters" spellcheck="false">
+      <button class="primary" style="width:auto" id="trackBtn">Track</button>
+      <button class="ghost" style="width:auto" id="cancelBtn">Stop</button>
+    </div>
+    <div class="status" id="trackStatus"></div>
+  </section>
+
+  <form id="settings">
+    <section>
+      <h2>Location &amp; scan</h2>
+      <div class="grid two">
+        <div><label for="home_lat">Home latitude</label>
+          <input id="home_lat" name="home_lat" type="number" step="0.0001" min="-90" max="90"></div>
+        <div><label for="home_lon">Home longitude</label>
+          <input id="home_lon" name="home_lon" type="number" step="0.0001" min="-180" max="180"></div>
+      </div>
+      <div class="grid two" style="margin-top:.85rem">
+        <div><label for="scan_radius">Scan radius (<span data-unit></span>)</label>
+          <input id="scan_radius" name="scan_radius" type="number" min="1" max="200" step="1"></div>
+        <div><label for="poll_interval_s">Panel poll interval (s)</label>
+          <input id="poll_interval_s" name="poll_interval_s" type="number" min="1" max="120" step="1"></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Units</h2>
+      <div class="grid two">
+        <div><label for="altitude_unit">Altitude</label>
+          <select id="altitude_unit" name="altitude_unit">
+            <option value="ft">feet</option><option value="m">metres</option></select></div>
+        <div><label for="speed_unit">Speed</label>
+          <select id="speed_unit" name="speed_unit">
+            <option value="kt">knots</option><option value="mph">mph</option>
+            <option value="kmh">km/h</option></select></div>
+        <div><label for="distance_unit">Distance</label>
+          <select id="distance_unit" name="distance_unit">
+            <option value="mi">miles</option><option value="km">kilometres</option>
+            <option value="nm">nautical miles</option></select></div>
+        <div><label for="route_display">Route shown as</label>
+          <select id="route_display" name="route_display">
+            <option value="codes">airport codes</option>
+            <option value="cities">city names</option></select></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Lines</h2>
+      <div class="chips" id="lines"></div>
+      <h2 style="margin-top:1rem">Show traffic</h2>
+      <div class="chips" id="categories"></div>
+    </section>
+
+    <section>
+      <h2>Brightness</h2>
+      <div class="grid two">
+        <div><label for="brightness">Day (<span id="brightnessVal"></span>)</label>
+          <input id="brightness" name="brightness" type="range" min="1" max="255"></div>
+        <div><label for="night_brightness">Night (<span id="nightVal"></span>)</label>
+          <input id="night_brightness" name="night_brightness" type="range" min="1" max="255"></div>
+        <div><label for="night_start">Night starts</label>
+          <input id="night_start" name="night_start" type="time"></div>
+        <div><label for="night_end">Night ends</label>
+          <input id="night_end" name="night_end" type="time"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="row">
+        <button class="primary" type="submit">Save</button>
+        <button class="ghost" type="button" id="reloadBtn" style="width:auto">Revert</button>
+      </div>
+      <div class="status" id="saveStatus"></div>
+    </section>
+  </form>
+
+  <section>
+    <h2>Feed</h2>
+    <dl id="health"></dl>
+  </section>
+</main>
+
+<footer class="attrib" id="footerAttrib"></footer>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const LINES = [["airline","Airline"],["route","Route"],["telemetry","Alt / speed / dist"],
+               ["bearing","Bearing & climb"]];
+const CATEGORIES = [["airline","Airline"],["military","Military"],["helicopter","Helicopter"],
+                    ["ga","GA"],["unknown","Unknown"]];
+let current = null;
+
+function chips(host, options, selected) {
+  host.innerHTML = "";
+  for (const [value, label] of options) {
+    const on = selected.includes(value);
+    const el = document.createElement("label");
+    el.className = "chip" + (on ? " on" : "");
+    el.innerHTML = `<input type="checkbox" value="${value}"${on ? " checked" : ""}>${label}`;
+    el.querySelector("input").addEventListener("change", (e) =>
+      el.classList.toggle("on", e.target.checked));
+    host.appendChild(el);
+  }
+}
+const chosen = (host) =>
+  [...host.querySelectorAll("input:checked")].map((i) => i.value);
+
+async function loadSettings() {
+  const s = await (await fetch("/api/settings")).json();
+  current = s;
+  for (const key of ["home_lat","home_lon","scan_radius","poll_interval_s","altitude_unit",
+                     "speed_unit","distance_unit","route_display","brightness",
+                     "night_brightness"]) {
+    if ($(key)) $(key).value = s[key];
+  }
+  $("night_start").value = String(s.night_start).slice(0, 5);
+  $("night_end").value = String(s.night_end).slice(0, 5);
+  chips($("lines"), LINES, s.lines);
+  chips($("categories"), CATEGORIES, s.categories);
+  document.querySelectorAll("[data-unit]").forEach((n) => (n.textContent = s.distance_unit));
+  $("brightnessVal").textContent = s.brightness;
+  $("nightVal").textContent = s.night_brightness;
+}
+
+$("brightness").addEventListener("input", (e) => ($("brightnessVal").textContent = e.target.value));
+$("night_brightness").addEventListener("input", (e) => ($("nightVal").textContent = e.target.value));
+
+$("settings").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const patch = {
+    home_lat: +$("home_lat").value, home_lon: +$("home_lon").value,
+    scan_radius: +$("scan_radius").value, poll_interval_s: +$("poll_interval_s").value,
+    altitude_unit: $("altitude_unit").value, speed_unit: $("speed_unit").value,
+    distance_unit: $("distance_unit").value, route_display: $("route_display").value,
+    brightness: +$("brightness").value, night_brightness: +$("night_brightness").value,
+    night_start: $("night_start").value + ":00", night_end: $("night_end").value + ":00",
+    lines: chosen($("lines")), categories: chosen($("categories")),
+  };
+  const res = await fetch("/api/settings", {
+    method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(patch),
+  });
+  const body = await res.json();
+  $("saveStatus").textContent = res.ok
+    ? "Saved. The panel picks this up on its next poll."
+    : "Rejected: " + (body.detail || res.status);
+  if (res.ok) { current = body; refreshFrame(); }
+});
+
+$("reloadBtn").addEventListener("click", loadSettings);
+
+$("trackBtn").addEventListener("click", async () => {
+  const ident = $("ident").value.trim().toUpperCase();
+  if (!ident) return;
+  const res = await fetch("/api/track", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ident}),
+  });
+  const body = await res.json();
+  $("trackStatus").textContent = res.ok
+    ? (body.found ? `Tracking ${body.tracking}.` : `Tracking ${body.tracking} — not in range yet.`)
+    : "Rejected: " + (body.detail || res.status);
+  refreshFrame();
+});
+
+$("cancelBtn").addEventListener("click", async () => {
+  await fetch("/api/track/cancel", {method: "POST"});
+  $("trackStatus").textContent = "Back to nearest aircraft.";
+  refreshFrame();
+});
+
+async function refreshFrame() {
+  let frame;
+  try { frame = await (await fetch("/api/frame")).json(); }
+  catch { $("statusDot").className = "dot offline"; return; }
+
+  $("statusDot").className = "dot " + frame.status;
+  const preview = $("preview");
+  preview.innerHTML = "";
+  for (const line of frame.lines) {
+    const div = document.createElement("div");
+    div.style.color = line.colour;
+    div.style.fontWeight = line.style === "title" ? "700" : "400";
+    div.textContent = line.text;
+    preview.appendChild(div);
+  }
+  const bar = $("bar");
+  bar.hidden = !frame.progress;
+  if (frame.progress) {
+    bar.firstElementChild.style.width = (frame.progress.fraction * 100).toFixed(1) + "%";
+  }
+  $("frameMeta").textContent =
+    `${frame.mode} · source ${frame.source} · ${frame.status}` +
+    (frame.progress?.eta ? ` · ETA ${frame.progress.eta}` : "");
+  $("attrib").textContent = frame.note || "";
+  $("footerAttrib").textContent = frame.note || "";
+}
+
+async function refreshHealth() {
+  let h;
+  try { h = await (await fetch("/healthz")).json(); } catch { return; }
+  const rows = [
+    ["Active feed", h.active_source],
+    ["Aircraft in range", h.aircraft_in_range],
+    ["Cache", `${h.cache.entries} entries · ${h.cache.hits} hits / ${h.cache.misses} misses`],
+  ];
+  for (const s of h.sources) {
+    rows.push([`Feed: ${s.name}`, `${s.healthy ? "healthy" : "unhealthy"}${s.detail ? " · " + s.detail : ""}`]);
+  }
+  if (h.aeroapi.enabled) {
+    rows.push(["AeroAPI quota", `${h.aeroapi.used_this_month} / ${h.aeroapi.monthly_limit} this month`]);
+  }
+  if (h.last_error) rows.push(["Last error", h.last_error]);
+  $("health").innerHTML = rows
+    .map(([k, v]) => `<dt>${k}</dt><dd>${String(v)}</dd>`).join("");
+}
+
+loadSettings();
+refreshFrame();
+refreshHealth();
+setInterval(refreshFrame, 3000);
+setInterval(refreshHealth, 10000);
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+ "now": 1754125000.0,
+ "messages": 1234567,
+ "aircraft": [
+  {
+   "hex": "4ca31f",
+   "type": "adsb_icao",
+   "seen_pos": 1.2,
+   "seen": 0.3,
+   "rssi": -18.4,
+   "messages": 842,
+   "flight": "IRISH112",
+   "lat": 53.3312,
+   "lon": -6.2001,
+   "alt_baro": 900,
+   "gs": 110,
+   "track": 15,
+   "baro_rate": 0,
+   "squawk": "0033",
+   "t": "AW13",
+   "r": "EI-ICR",
+   "category": "A7"
+  }
+ ],
+ "_skypanel_note": "synthesised fixture, dump1090-fa v9 schema"
+}

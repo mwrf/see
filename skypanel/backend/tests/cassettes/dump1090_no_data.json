@@ -1,0 +1,26 @@
+{
+ "GET http://receiver.local:8080/data/aircraft.json": {
+  "status": 200,
+  "json": {
+   "tar1090": "index"
+  }
+ },
+ "GET http://receiver.local:8080/skyaware/data/aircraft.json": {
+  "status": 200,
+  "json": {
+   "tar1090": "index"
+  }
+ },
+ "GET http://receiver.local:8080/tar1090/data/aircraft.json": {
+  "status": 200,
+  "json": {
+   "tar1090": "index"
+  }
+ },
+ "GET http://receiver.local/tar1090/data/aircraft.json": {
+  "status": 200,
+  "json": {
+   "tar1090": "index"
+  }
+ }
+}

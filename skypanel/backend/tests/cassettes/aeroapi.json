@@ -1,0 +1,38 @@
+{
+ "GET /flights/BAW832": {
+  "status": 200,
+  "json": {
+   "flights": [
+    {
+     "ident": "BAW832",
+     "ident_iata": "BA832",
+     "operator_icao": "BAW",
+     "origin": {
+      "code": "EIDW",
+      "code_icao": "EIDW",
+      "code_iata": "DUB",
+      "city": "Dublin"
+     },
+     "destination": {
+      "code": "EGLL",
+      "code_icao": "EGLL",
+      "code_iata": "LHR",
+      "city": "London"
+     },
+     "scheduled_off": "2026-08-02T08:35:00Z",
+     "scheduled_on": "2026-08-02T09:50:00Z",
+     "estimated_on": "2026-08-02T09:42:00Z",
+     "status": "En Route"
+    }
+   ],
+   "links": null,
+   "num_pages": 1
+  }
+ },
+ "GET /flights/RCH285": {
+  "status": 404,
+  "json": {
+   "title": "Not Found"
+  }
+ }
+}

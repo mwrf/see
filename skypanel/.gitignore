@@ -1,0 +1,26 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Runtime state: caches, settings, history
+backend/var/
+
+# Native / emulator build output
+emulator/build/
+emulator/out/
+firmware/.pio/
+build/
+*.o
+*.a
+
+# Snapshot test artefacts (the goldens in emulator/snapshots/ ARE committed)
+emulator/snapshots/*.actual.png
+emulator/snapshots/*.diff.png

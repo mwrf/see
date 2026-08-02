@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SkyPanel — history</title>
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --line:#30363d; --text:#e6edf3;
+          --muted:#8b949e; --accent:#58a6ff; }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#f6f8fa; --panel:#fff; --line:#d0d7de; --text:#1f2328; --muted:#656d76; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:0 0 3rem; background:var(--bg); color:var(--text);
+         font:16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  header { position:sticky; top:0; background:var(--panel); border-bottom:1px solid var(--line);
+           padding:.75rem 1rem; display:flex; align-items:center; gap:.75rem; }
+  header h1 { font-size:1.05rem; margin:0; font-weight:600; }
+  header nav { margin-left:auto; font-size:.85rem; }
+  header a { color:var(--accent); text-decoration:none; }
+  main { max-width:56rem; margin:0 auto; padding:1rem; display:grid; gap:1rem; }
+  section { background:var(--panel); border:1px solid var(--line);
+            border-radius:.7rem; padding:1rem; }
+  h2 { font-size:.78rem; text-transform:uppercase; letter-spacing:.09em;
+       color:var(--muted); margin:0 0 .8rem; font-weight:600; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(7rem,1fr)); gap:.8rem; }
+  .stat b { display:block; font-size:1.5rem; font-variant-numeric:tabular-nums; }
+  .stat span { color:var(--muted); font-size:.75rem; text-transform:uppercase;
+               letter-spacing:.06em; }
+  .scroll { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; font-size:.85rem; min-width:40rem; }
+  th { text-align:left; color:var(--muted); font-weight:600; font-size:.72rem;
+       text-transform:uppercase; letter-spacing:.06em; padding:.4rem .5rem;
+       border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--panel); }
+  td { padding:.42rem .5rem; border-bottom:1px solid var(--line);
+       font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .swatch { display:inline-block; width:.6rem; height:.6rem; border-radius:2px;
+            margin-right:.4rem; vertical-align:-1px; }
+  .bars { display:grid; gap:.35rem; }
+  .bars div { display:grid; grid-template-columns:9rem 1fr auto; gap:.5rem;
+              align-items:center; font-size:.82rem; }
+  .bars i { height:.55rem; background:var(--accent); border-radius:2px; display:block; }
+  select { font:inherit; color:var(--text); background:var(--bg); border:1px solid var(--line);
+           border-radius:.45rem; padding:.4rem .5rem; }
+  .muted { color:var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1>History</h1>
+  <select id="hours">
+    <option value="1">last hour</option>
+    <option value="6">last 6 hours</option>
+    <option value="24" selected>last 24 hours</option>
+    <option value="168">last week</option>
+  </select>
+  <nav><a href="/">Settings</a></nav>
+</header>
+
+<main>
+  <section><h2>Summary</h2><div class="stats" id="stats"></div></section>
+  <section><h2>Top airlines</h2><div class="bars" id="top"></div></section>
+  <section>
+    <h2>Sightings</h2>
+    <div class="scroll"><table>
+      <thead><tr>
+        <th>Last seen</th><th>Callsign</th><th>Airline</th><th>Route</th>
+        <th>Type</th><th>Reg</th><th>Closest</th><th>Max alt</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+  </section>
+</main>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const timeFmt = (t) => new Date(t * 1000).toLocaleString(undefined,
+  {month:"short", day:"numeric", hour:"2-digit", minute:"2-digit"});
+const num = (v, digits, suffix) =>
+  v == null ? "—" : v.toLocaleString(undefined, {maximumFractionDigits: digits}) + suffix;
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g,
+  (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+async function load() {
+  const hours = $("hours").value;
+  const data = await (await fetch(`/api/history?hours=${hours}`)).json();
+  const s = data.summary;
+
+  $("stats").innerHTML = [
+    ["Sightings", s.sightings], ["Airframes", s.airframes],
+    ["Closest", num(s.closest_nm, 1, " NM")],
+  ].map(([k, v]) => `<div class="stat"><b>${esc(v)}</b><span>${k}</span></div>`).join("");
+
+  const max = Math.max(1, ...s.top_airlines.map((a) => a.count));
+  $("top").innerHTML = s.top_airlines.length
+    ? s.top_airlines.map((a) =>
+        `<div><span>${esc(a.name)}</span><i style="width:${(a.count / max * 100).toFixed(1)}%"></i>` +
+        `<span class="muted">${a.count}</span></div>`).join("")
+    : '<span class="muted">Nothing yet.</span>';
+
+  $("rows").innerHTML = data.sightings.length
+    ? data.sightings.map((r) => `<tr>
+        <td class="muted">${timeFmt(r.last_seen)}</td>
+        <td>${esc(r.callsign || "—")}</td>
+        <td><span class="swatch" style="background:${esc(r.colour || "#fff")}"></span>${esc(r.airline || "—")}</td>
+        <td>${esc(r.origin || "?")} → ${esc(r.destination || "?")}</td>
+        <td>${esc(r.type_code || "—")}</td>
+        <td>${esc(r.registration || "—")}</td>
+        <td>${num(r.closest_nm, 1, " NM")}</td>
+        <td>${num(r.max_alt_ft, 0, " ft")}</td>
+      </tr>`).join("")
+    : '<tr><td colspan="8" class="muted">Nothing recorded in this window.</td></tr>';
+}
+
+$("hours").addEventListener("change", load);
+load();
+setInterval(load, 30000);
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+ "now": 1754125000.0,
+ "messages": 1234567,
+ "aircraft": [
+  {
+   "hex": "4d2210",
+   "type": "adsb_icao",
+   "seen_pos": 1.2,
+   "seen": 0.3,
+   "rssi": -18.4,
+   "messages": 842,
+   "flight": "N904TX  ",
+   "lat": 53.3702,
+   "lon": -6.1501,
+   "alt_baro": 14000,
+   "gs": 338,
+   "track": 320,
+   "baro_rate": 1408,
+   "squawk": "4677",
+   "category": "A2"
+  }
+ ],
+ "_skypanel_note": "synthesised fixture, dump1090-fa v9 schema"
+}

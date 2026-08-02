@@ -1,0 +1,26 @@
+{
+ "now": 1754125000.0,
+ "messages": 1234567,
+ "aircraft": [
+  {
+   "hex": "4ca0f1",
+   "type": "adsb_icao",
+   "seen_pos": 2.6,
+   "seen": 0.3,
+   "rssi": -18.4,
+   "messages": 842,
+   "flight": "DLH991  ",
+   "lat": 54.2201,
+   "lon": -7.5502,
+   "alt_baro": 37000,
+   "gs": 466,
+   "track": 118,
+   "baro_rate": 0,
+   "squawk": "3145",
+   "t": "A333",
+   "r": "D-AIKQ",
+   "category": "A5"
+  }
+ ],
+ "_skypanel_note": "synthesised fixture, dump1090-fa v9 schema"
+}

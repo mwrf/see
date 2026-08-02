@@ -1,0 +1,55 @@
+# SkyPanel deployment configuration.
+#
+# Secrets never live here — this file is checked in. API keys come from the
+# environment (see .env.example).
+
+state_dir = "var"
+
+[source]
+# local | aggregator | mock | auto
+#   local      — your own dump1090/readsb receiver on the LAN (preferred)
+#   aggregator — a public API; see [source].aggregator_provider
+#   mock       — replay recorded fixtures, no network at all
+#   auto       — probe local at startup, fall back to aggregator if it isn't there
+mode = "mock"
+
+local_host = "raspberrypi.local"
+# Leave local_path unset to probe the dump1090 / skyaware / tar1090 paths in turn.
+# Set it if your decoder serves aircraft.json somewhere unusual; "{host}" is
+# substituted, e.g. "http://{host}:8080/data/aircraft.json".
+# local_path = "http://{host}:8080/data/aircraft.json"
+
+# adsb_fi | adsb_lol | airplanes_live. Check the provider's current terms before
+# enabling one — attribution is required by some and is surfaced in the UI.
+aggregator_provider = "adsb_fi"
+
+# Switch to the aggregator when the local receiver has been unhealthy this long.
+failover = true
+failover_after_s = 60.0
+
+# How often the backend polls its source. The device's own poll interval is a user
+# setting and is independent of this.
+poll_interval_s = 1.0
+
+# mock only.
+mock_speed = 1.0
+
+[enrich]
+adsbdb_base = "https://api.adsbdb.com"
+aeroapi_base = "https://aeroapi.flightaware.com/aeroapi"
+
+# AeroAPI is metered and only enabled when AEROAPI_KEY is set. Feeders get $10/month
+# of query fees free; this ceiling is the hard stop after which lookups degrade back
+# to adsbdb rather than costing money.
+aeroapi_monthly_limit = 400
+
+route_ttl_s = 43200      # 12 h
+aircraft_ttl_s = 2592000 # 30 d
+negative_ttl_s = 3600    # 1 h — stops unmatched military callsigns being re-queried
+
+[server]
+host = "0.0.0.0"
+port = 8000
+# Path to an esp32FOTA manifest to serve at /firmware/manifest.json, so OTA updates
+# stay on the LAN.
+# firmware_manifest = "var/firmware/manifest.json"

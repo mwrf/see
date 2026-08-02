@@ -1,0 +1,104 @@
+{
+ "GET /v0/callsign/RYR1812": {
+  "status": 200,
+  "json": {
+   "response": {
+    "flightroute": {
+     "callsign": "RYR1812",
+     "callsign_icao": "RYR1812",
+     "callsign_iata": "FR1812",
+     "airline": {
+      "name": "Ryanair",
+      "icao": "RYR",
+      "iata": "FR",
+      "country": "Ireland"
+     },
+     "origin": {
+      "country_iso_name": "IE",
+      "iata_code": "DUB",
+      "icao_code": "EIDW",
+      "municipality": "Dublin",
+      "name": "Dublin Airport",
+      "latitude": 53.421299,
+      "longitude": -6.27007
+     },
+     "destination": {
+      "country_iso_name": "GB",
+      "iata_code": "STN",
+      "icao_code": "EGSS",
+      "municipality": "London",
+      "name": "London Stansted Airport",
+      "latitude": 51.885,
+      "longitude": 0.235
+     }
+    }
+   }
+  }
+ },
+ "GET /v0/callsign/BAW832": {
+  "status": 200,
+  "json": {
+   "response": {
+    "flightroute": {
+     "callsign": "BAW832",
+     "callsign_iata": "BA832",
+     "airline": {
+      "name": "British Airways",
+      "icao": "BAW",
+      "iata": "BA"
+     },
+     "origin": {
+      "iata_code": "DUB",
+      "icao_code": "EIDW",
+      "municipality": "Dublin"
+     },
+     "destination": {
+      "iata_code": "LHR",
+      "icao_code": "EGLL",
+      "municipality": "London"
+     }
+    }
+   }
+  }
+ },
+ "GET /v0/callsign/RCH285": {
+  "status": 404,
+  "json": {
+   "response": "unknown callsign"
+  }
+ },
+ "GET /v0/callsign/N904TX": {
+  "status": 404,
+  "json": {
+   "response": "unknown callsign"
+  }
+ },
+ "GET /v0/aircraft/4ca7b5": {
+  "status": 200,
+  "json": {
+   "response": {
+    "aircraft": {
+     "icao_type": "B738",
+     "manufacturer": "Boeing",
+     "mode_s": "4CA7B5",
+     "registration": "EI-DAA",
+     "registered_owner": "Ryanair",
+     "type": "737 800",
+     "url_photo": null
+    }
+   }
+  }
+ },
+ "GET /v0/aircraft/ae1234": {
+  "status": 404,
+  "json": {
+   "response": "unknown aircraft"
+  }
+ },
+ "GET /v0/aircraft/4d2210": {
+  "status": 404,
+  "json": {
+   "response": "unknown aircraft"
+  }
+ }
+}
