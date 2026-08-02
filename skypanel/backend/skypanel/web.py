@@ -65,6 +65,11 @@ th { color: var(--muted); font-weight: 500; font-size: .72rem; text-transform: u
 .stat span { color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; }
 footer { color: var(--muted); font-size: .75rem; text-align: center; padding: 1.5rem 1rem 0; }
 @media (max-width: 30rem) { .row { flex-direction: column; gap: 0; } }
+/* A fixed-width button only makes sense while the row runs horizontally. Below
+   the breakpoint the axis turns vertical and `flex: 0 0 8rem` would set an
+   8rem *height* instead -- which is exactly how the Track button ended up
+   128px tall on a phone. */
+@media (min-width: 30.0625rem) { button.fixed { flex: 0 0 8rem; } }
 """
 
 SETTINGS_HTML = f"""<!doctype html>
@@ -146,7 +151,7 @@ SETTINGS_HTML = f"""<!doctype html>
       <label for="ident">Flight ident (BA249, RYR1812, EI-DYR)</label>
       <div class="row">
         <input id="ident" placeholder="BA249">
-        <button type="button" id="track" style="flex:0 0 8rem">Track</button>
+        <button type="button" id="track" class="fixed">Track</button>
       </div>
       <button type="button" class="secondary" id="untrack" style="margin-top:.6rem">Back to nearest</button>
     </fieldset>
