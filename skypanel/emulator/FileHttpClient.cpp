@@ -32,9 +32,7 @@ bool FileHttpClient::loadScenario(const std::string &path, std::string &error) {
   }
   frames_.clear();
   std::string line;
-  int lineNumber = 0;
   while (std::getline(file, line)) {
-    ++lineNumber;
     //  Blank lines and #-comments make hand-written scenarios readable.
     const std::size_t start = line.find_first_not_of(" \t\r");
     if (start == std::string::npos || line[start] == '#') {
@@ -46,7 +44,6 @@ bool FileHttpClient::loadScenario(const std::string &path, std::string &error) {
     error = path + " contained no frames (expected one JSON document per line)";
     return false;
   }
-  (void)lineNumber;
   return true;
 }
 

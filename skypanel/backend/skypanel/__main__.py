@@ -21,7 +21,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--port", type=int, default=None)
     parser.add_argument("-v", "--verbose", action="store_true")
     sub = parser.add_subparsers(dest="command")
-    sub.add_parser("serve", help="run the HTTP service (default)")
+    serve = sub.add_parser("serve", help="run the HTTP service (default)")
+    #  Repeated on the subcommand as well as globally: "skypanel serve --port
+    #  8123" is what people actually type, and argparse would otherwise reject
+    #  it for being on the wrong side of the subcommand.
+    serve.add_argument("--host", default=None)
+    serve.add_argument("--port", type=int, default=None)
     sub.add_parser("frame", help="print one DisplayFrame as JSON and exit")
     sub.add_parser("probe", help="probe the configured local receiver and report what answered")
 

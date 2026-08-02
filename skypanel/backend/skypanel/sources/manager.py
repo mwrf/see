@@ -120,9 +120,6 @@ class SourceManager:
 
     async def fetch(self, lat: float, lon: float, radius_nm: float) -> list[Aircraft]:
         """Poll the active source, failing over (or recovering) as needed."""
-        if self._failed_over and self._primary.healthy is False:
-            pass  # stay on the fallback until an explicit recheck succeeds
-
         try:
             aircraft = await self._active.fetch(lat, lon, radius_nm)
         except SourceError as exc:

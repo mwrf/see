@@ -11,7 +11,9 @@ from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
-DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "airports.csv"
+from .paths import data_file
+
+DATA_PATH = data_file("airports.csv")
 
 
 @dataclass(frozen=True, slots=True)

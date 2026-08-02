@@ -13,10 +13,11 @@ from pathlib import Path
 from typing import Any
 
 from ..models import Aircraft
+from ..paths import data_dir
 from .base import SourceError
 from .local import parse_aircraft_json
 
-DEFAULT_FIXTURE_DIR = Path(__file__).resolve().parents[2] / "data" / "fixtures"
+DEFAULT_FIXTURE_DIR = data_dir() / "fixtures"
 
 
 class MockSource:

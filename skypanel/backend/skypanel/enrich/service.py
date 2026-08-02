@@ -215,9 +215,6 @@ class EnrichmentService:
             eta=_parse_dt(record.get("eta")),
             provider=_str(record.get("provider")) or "adsbdb",
         )
-        if prefer_cities:
-            #  Codes stay populated; the frame builder picks which to show.
-            pass
 
 
 def _str(value: Any) -> str | None:

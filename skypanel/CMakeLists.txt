@@ -68,7 +68,12 @@ add_library(skypanel_device STATIC
   ${FIRMWARE_DIR}/lib/display/Hub75Display.cpp
   ${FIRMWARE_DIR}/lib/net/SocketHttpClient.cpp
   ${FIRMWARE_DIR}/lib/net/Esp32HttpClient.cpp
+  # Device-only features. Their native stubs are compiled here on purpose:
+  # a stub that does not link is a build break discovered on hardware.
+  ${FIRMWARE_DIR}/lib/net/Provisioning.cpp
+  ${FIRMWARE_DIR}/lib/net/Ota.cpp
   ${FIRMWARE_DIR}/lib/app/Buttons.cpp
+  ${FIRMWARE_DIR}/lib/app/DeviceConfig.cpp
   ${FIRMWARE_DIR}/lib/app/PanelApp.cpp
 )
 target_include_directories(skypanel_device PUBLIC

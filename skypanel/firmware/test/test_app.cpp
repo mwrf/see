@@ -3,6 +3,7 @@
 #include <string>
 
 #include "Buttons.h"
+#include "DeviceConfig.h"
 #include "FileHttpClient.h"
 #include "IDisplay.h"
 #include "PanelApp.h"
@@ -257,6 +258,51 @@ TEST(a_long_press_is_distinguishable) {
 TEST(a_released_button_reports_no_hold_time) {
   ButtonDebouncer button;
   CHECK_EQ(button.heldMs(5000), static_cast<uint32_t>(0));
+}
+
+// -- device configuration -----------------------------------------------
+
+TEST(a_fresh_device_is_not_provisioned) {
+  skypanel::clearDeviceConfig();
+  skypanel::DeviceConfig config;
+  CHECK(!skypanel::loadDeviceConfig(config));
+  CHECK(!config.provisioned());
+  //  Defaults survive a failed load, so the portal starts with sane values.
+  CHECK_STR(config.backendUrl, "http://raspberrypi.local:8000");
+}
+
+TEST(saved_configuration_round_trips) {
+  skypanel::clearDeviceConfig();
+  skypanel::DeviceConfig saved;
+  std::snprintf(saved.ssid, sizeof(saved.ssid), "Kitchen");
+  std::snprintf(saved.password, sizeof(saved.password), "hunter2");
+  std::snprintf(saved.backendUrl, sizeof(saved.backendUrl), "http://pi.lan:8000");
+  saved.brightness = 90;
+  saved.fm6126a = true;
+  CHECK(skypanel::saveDeviceConfig(saved));
+
+  skypanel::DeviceConfig loaded;
+  CHECK(skypanel::loadDeviceConfig(loaded));
+  CHECK(loaded.provisioned());
+  CHECK_STR(loaded.ssid, "Kitchen");
+  CHECK_STR(loaded.backendUrl, "http://pi.lan:8000");
+  CHECK_EQ(static_cast<int>(loaded.brightness), 90);
+  CHECK(loaded.fm6126a);
+  skypanel::clearDeviceConfig();
+}
+
+TEST(clearing_configuration_returns_the_device_to_setup) {
+  skypanel::DeviceConfig saved;
+  std::snprintf(saved.ssid, sizeof(saved.ssid), "Kitchen");
+  skypanel::saveDeviceConfig(saved);
+  skypanel::clearDeviceConfig();
+
+  skypanel::DeviceConfig loaded;
+  CHECK(!skypanel::loadDeviceConfig(loaded));
+}
+
+TEST(the_provisioning_ssid_is_recognisable) {
+  CHECK(std::strncmp(skypanel::provisioningSsid(), "SkyPanel-", 9) == 0);
 }
 
 // -- URL parsing --------------------------------------------------------

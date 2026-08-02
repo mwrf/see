@@ -1,0 +1,45 @@
+# SkyPanel backend in a container, for a Pi that already runs its decoder in
+# Docker.
+#
+#   cd deploy && docker compose up -d
+#
+# Host networking is deliberate on Linux: the device finds the backend by
+# hostname on the LAN, and the backend finds the receiver the same way. Bridge
+# networking would need explicit IPs at both ends and break mDNS.
+
+services:
+  skypanel:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: skypanel:latest
+    container_name: skypanel
+    restart: unless-stopped
+    network_mode: host
+
+    environment:
+      SKYPANEL_CONFIG: /config/config.toml
+      SKYPANEL_STATE_DIR: /state
+      # Optional; leave unset to stay on adsbdb only.
+      AEROAPI_KEY: ${AEROAPI_KEY:-}
+
+    volumes:
+      # Deployment config. Copy config.example.toml here and edit.
+      - ./config:/config
+      # Cache, settings and history. This is the only thing worth backing up.
+      - skypanel-state:/state
+      # Firmware images for LAN-local OTA, written by `just release`.
+      - ../firmware-releases:/opt/skypanel/firmware-releases:ro
+
+    healthcheck:
+      # /healthz reports 503 until the first successful poll, which is exactly
+      # the condition worth restarting for.
+      test: ["CMD", "python", "-c",
+             "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/healthz', timeout=3).status==200 else 1)"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  skypanel-state:

@@ -15,7 +15,9 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "airlines.json"
+from .paths import data_file
+
+DATA_PATH = data_file("airlines.json")
 UNKNOWN_COLOUR = "#FFFFFF"
 
 #: A civil callsign is three letters of ICAO operator code followed by a flight

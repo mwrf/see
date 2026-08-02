@@ -1,0 +1,49 @@
+# SkyPanel backend, running on the same Pi as the ADS-B receiver.
+#
+#   sudo cp deploy/skypanel.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now skypanel
+#   journalctl -u skypanel -f
+
+[Unit]
+Description=SkyPanel ADS-B display backend
+Documentation=https://github.com/mwrf/see/tree/main/skypanel
+# Not Requires=: if the decoder is down, SkyPanel should still start and say so
+# on the panel rather than refusing to run.
+After=network-online.target dump1090-fa.service readsb.service
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=skypanel
+Group=skypanel
+WorkingDirectory=/opt/skypanel
+
+Environment=SKYPANEL_CONFIG=/etc/skypanel/config.toml
+Environment=SKYPANEL_STATE_DIR=/var/lib/skypanel
+EnvironmentFile=-/etc/skypanel/.env
+
+ExecStart=/opt/skypanel/.venv/bin/python -m skypanel serve
+
+Restart=always
+RestartSec=5
+# A Pi Zero takes a moment to warm the enrichment cache on a cold SD card.
+TimeoutStartSec=60
+
+# The service reads a JSON endpoint on the LAN and writes one SQLite file.
+# Nothing here needs more than that.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+ReadWritePaths=/var/lib/skypanel
+
+[Install]
+WantedBy=multi-user.target

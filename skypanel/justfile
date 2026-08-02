@@ -1,0 +1,132 @@
+# SkyPanel task runner.  `just` with no argument lists everything.
+
+backend := "backend"
+build := "build"
+venv := backend + "/.venv"
+py := venv + "/bin/python"
+
+default:
+    @just --list
+
+# -- setup ---------------------------------------------------------------
+
+# Create the backend virtualenv and install dependencies.
+setup:
+    cd {{backend}} && uv venv --python 3.12 .venv
+    cd {{backend}} && uv pip install -e ".[dev]"
+    @echo "Now: cp config.example.toml config.toml && cp .env.example .env"
+
+# -- backend -------------------------------------------------------------
+
+# Run the backend on http://localhost:8000
+serve *args:
+    cd {{backend}} && .venv/bin/python -m skypanel serve {{args}}
+
+# Print one DisplayFrame as JSON and exit.
+frame:
+    cd {{backend}} && .venv/bin/python -m skypanel frame
+
+# Probe the configured receiver and report which aircraft.json answered.
+probe:
+    cd {{backend}} && .venv/bin/python -m skypanel probe
+
+test-backend *args:
+    cd {{backend}} && .venv/bin/python -m pytest {{args}}
+
+lint:
+    cd {{backend}} && .venv/bin/python -m ruff check .
+    cd {{backend}} && .venv/bin/python -m ruff format --check .
+    cd {{backend}} && .venv/bin/python -m mypy
+
+fmt:
+    cd {{backend}} && .venv/bin/python -m ruff check . --fix
+    cd {{backend}} && .venv/bin/python -m ruff format .
+
+# -- emulator and renderer ----------------------------------------------
+
+configure:
+    cmake -B {{build}} -DCMAKE_BUILD_TYPE=Release
+
+build: configure
+    cmake --build {{build}} -j
+
+test-render: build
+    ./{{build}}/firmware/test/skypanel-tests
+
+# Everything a commit has to pass.
+test: test-render test-backend lint
+
+# Run the emulator against a live backend.
+emu *args: build
+    ./{{build}}/skypanel-emu {{args}}
+
+# Render one fixture in a window.
+show fixture="ryanair": build
+    ./{{build}}/skypanel-emu --frame emulator/fixtures/{{fixture}}.json --scale 12
+
+# Replay the busy-approach scenario at 4x.
+scenario: build
+    ./{{build}}/skypanel-emu --scenario emulator/fixtures/busy.jsonl --speed 4 --scale 12
+
+# Write a PNG of one fixture, for a README or a bug report.
+snapshot fixture="ryanair" out="out.png": build
+    ./{{build}}/skypanel-emu --snapshot {{out}} --frame emulator/fixtures/{{fixture}}.json --scale 10
+
+# Record a GIF of the scrolling behaviour.
+record out="out.gif" seconds="12": build
+    ./{{build}}/skypanel-emu --record {{out}} --duration {{seconds}} --scenario emulator/fixtures/busy.jsonl --scale 6
+
+# Accept the current rendering as the new golden images. Read the diff.
+approve-snapshots: build
+    SKYPANEL_APPROVE_SNAPSHOTS=1 ./{{build}}/firmware/test/skypanel-tests golden
+    @echo "Review with: git diff --stat emulator/snapshots/"
+
+# Regenerate the bitmap font headers from their ASCII-art sources.
+fonts:
+    python3 tools/genfont.py firmware/lib/render/fonts/SkyPanel7.font \
+        -o firmware/lib/render/fonts/SkyPanel7.h
+    @echo "regenerated SkyPanel7.h"
+
+# Fail if a generated font header is out of date with its source.
+check-fonts:
+    python3 tools/genfont.py firmware/lib/render/fonts/SkyPanel7.font \
+        --check firmware/lib/render/fonts/SkyPanel7.h
+
+# -- firmware ------------------------------------------------------------
+
+firmware:
+    cd firmware && pio run -e esp32s3
+
+flash:
+    cd firmware && pio run -e esp32s3 -t upload
+
+monitor:
+    cd firmware && pio device monitor
+
+# Build a firmware image and publish it for OTA, then serve the manifest.
+release version: firmware
+    {{py}} tools/publish_firmware.py \
+        --bin firmware/.pio/build/esp32s3/firmware.bin \
+        --version {{version}} \
+        --out firmware-releases
+
+# -- data ----------------------------------------------------------------
+
+# Record aircraft.json snapshots from a live receiver into data/fixtures/.
+capture-fixtures host="raspberrypi.local" count="6" interval="10":
+    {{py}} tools/capture_fixtures.py --host {{host}} --count {{count}} \
+        --interval {{interval}} --out {{backend}}/data/fixtures
+
+# Add or update an airline: just add-airline EIN "Aer Lingus" "#008D7F" EI
+add-airline code name colour iata="":
+    {{py}} tools/add_airline.py {{code}} {{name}} {{colour}} --iata "{{iata}}"
+
+# Rebuild data/airports.csv from a full OurAirports download.
+reduce-airports source="airports.csv":
+    {{py}} tools/reduce_airports.py {{source}} --out {{backend}}/data/airports.csv
+
+# -- housekeeping --------------------------------------------------------
+
+clean:
+    rm -rf {{build}} firmware/.pio
+    find . -name __pycache__ -type d -prune -exec rm -rf {} +

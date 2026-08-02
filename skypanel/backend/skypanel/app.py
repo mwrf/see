@@ -188,6 +188,22 @@ def create_app(service: SkyPanelService | None = None, config: AppConfig | None 
         except (OSError, json.JSONDecodeError) as exc:
             raise HTTPException(status_code=500, detail=f"bad firmware manifest: {exc}") from exc
 
+    @app.get("/firmware/{filename}")
+    async def firmware_binary(request: Request, filename: str) -> Response:
+        """Serve a published firmware image to esp32FOTA."""
+        service_ = svc(request)
+        directory = Path(service_.config.server.firmware_dir).expanduser().resolve()
+        candidate = (directory / filename).resolve()
+        #  Refuse anything that escapes the release directory; the device is on
+        #  the LAN, but so is everything else on the LAN.
+        if not candidate.is_file() or directory not in candidate.parents:
+            raise HTTPException(status_code=404, detail="no such firmware image")
+        return Response(
+            candidate.read_bytes(),
+            media_type="application/octet-stream",
+            headers={"Content-Disposition": f'attachment; filename="{candidate.name}"'},
+        )
+
     # -- pages -----------------------------------------------------------
 
     @app.get("/", response_class=HTMLResponse)
