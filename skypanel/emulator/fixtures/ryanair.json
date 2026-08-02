@@ -1,0 +1,27 @@
+{
+  "mode": "nearest",
+  "source": "local",
+  "generated_at": "2026-08-02T09:14:03Z",
+  "lines": [
+    {
+      "text": "RYANAIR",
+      "colour": "#0840AE",
+      "style": "title",
+      "scroll": "auto"
+    },
+    {
+      "text": "FR1812  DUB→STN  B738",
+      "colour": "#c8c8c8",
+      "style": "body",
+      "scroll": "auto"
+    },
+    {
+      "text": "24,000FT  410KT  6.1MI",
+      "colour": "#808080",
+      "style": "body",
+      "scroll": "auto"
+    }
+  ],
+  "progress": null,
+  "status": "live"
+}

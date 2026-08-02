@@ -123,21 +123,60 @@ def dim(colour: str, factor: float) -> str:
     return f"#{clamp(r):02X}{clamp(g):02X}{clamp(b):02X}"
 
 
-def ensure_legible(colour: str, *, floor: int = 48) -> str:
-    """Lift very dark brand colours so they are visible on a black panel.
+#: The gamma ramp the HUB75 driver applies to its PWM, reproduced by the
+#: emulator. Everything sent to the panel is raised to this power before it
+#: becomes light.
+PANEL_GAMMA = 2.2
 
-    Several carriers' brand colours are near-black navy; at P4 pitch and 60%
-    brightness those simply do not read, so raise the value while keeping hue.
+#: The brightness a title has to *actually* emit, on the same 0-255 scale, to
+#: read across a room at typical panel brightness.
+MIN_PANEL_LEVEL = 110
+
+
+def required_linear(level: int, gamma: float = PANEL_GAMMA) -> int:
+    """The value to send so the panel emits ``level``.
+
+    The inverse of the driver's gamma ramp.  Worth spelling out, because the
+    intuitive version of the check below -- comparing raw channel values
+    against a threshold -- is wrong by a factor of three at the dark end, which
+    is exactly where airline navies live.
+    """
+    clamped = max(0, min(255, level))
+    linear: float = 255.0 * (clamped / 255.0) ** (1.0 / gamma)
+    return round(linear)
+
+
+def panel_level(colour: str, gamma: float = PANEL_GAMMA) -> int:
+    """Peak brightness this colour will actually emit, after gamma."""
+    emitted: float = 255.0 * (max(to_rgb(colour)) / 255.0) ** gamma
+    return round(emitted)
+
+
+def ensure_legible(
+    colour: str, *, min_level: int = MIN_PANEL_LEVEL, gamma: float = PANEL_GAMMA
+) -> str:
+    """Lift dark brand colours so they survive the panel's gamma ramp.
+
+    Ryanair's #073590 has a peak channel of 144, which sounds bright enough --
+    but 144 through a 2.2 gamma emits 73, and several carriers' navies land
+    under 30, which on a P4 panel is indistinguishable from off.  The emulator
+    is what makes this visible; this function is the fix.
+
+    All three channels scale by the same factor, so the hue is untouched and
+    the colour still reads as that airline's blue.  Only the value changes.
     """
     r, g, b = to_rgb(colour)
     peak = max(r, g, b)
+    floor = required_linear(min_level, gamma)
     if peak >= floor:
         return normalise_colour(colour)
     if peak == 0:
+        #  Pure black would be invisible whatever we did to it.
         return "#FFFFFF"
     scale = floor / peak
+
     def lift(channel: int) -> int:
-        return min(255, int(channel * scale))
+        return min(255, round(channel * scale))
 
     return f"#{lift(r):02X}{lift(g):02X}{lift(b):02X}"
 

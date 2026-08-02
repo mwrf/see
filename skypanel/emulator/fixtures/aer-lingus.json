@@ -1,0 +1,27 @@
+{
+  "mode": "nearest",
+  "source": "local",
+  "generated_at": "2026-08-02T09:16:02Z",
+  "lines": [
+    {
+      "text": "AER LINGUS",
+      "colour": "#00AE9D",
+      "style": "title",
+      "scroll": "auto"
+    },
+    {
+      "text": "EI12A  DUB→AMS  A20N",
+      "colour": "#c8c8c8",
+      "style": "body",
+      "scroll": "auto"
+    },
+    {
+      "text": "3,200FT  178KT  4.8MI",
+      "colour": "#808080",
+      "style": "body",
+      "scroll": "auto"
+    }
+  ],
+  "progress": null,
+  "status": "live"
+}

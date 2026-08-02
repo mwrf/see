@@ -26,9 +26,14 @@ from .models import (
 from .settings import Settings
 from .units import format_altitude, format_distance, format_speed, format_vert_rate
 
+#: Line colours, chosen post-gamma rather than by eye: #C8C8C8 emits 151 and
+#: #808080 emits 55, which is the deliberate hierarchy between the flight line
+#: and the numbers below it.  See colours.panel_level.
 BODY_COLOUR = "#C8C8C8"
 DETAIL_COLOUR = "#808080"
-EMPTY_COLOUR = "#404060"
+#: An empty sky should be quiet but not invisible; a raw #404060 emits 30,
+#: which on a P4 panel is indistinguishable from off.
+EMPTY_COLOUR = "#7070A8"
 ARROW = "→"
 
 #: A frame older than this is drawn with the "stale" corner indicator.

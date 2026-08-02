@@ -1,0 +1,21 @@
+{
+  "mode": "empty",
+  "source": "local",
+  "generated_at": "2026-08-02T04:10:00Z",
+  "lines": [
+    {
+      "text": "NO AIRCRAFT",
+      "colour": "#7070A8",
+      "style": "title",
+      "scroll": "none"
+    },
+    {
+      "text": "WITHIN 30.0MI",
+      "colour": "#4E4E76",
+      "style": "body",
+      "scroll": "none"
+    }
+  ],
+  "progress": null,
+  "status": "live"
+}

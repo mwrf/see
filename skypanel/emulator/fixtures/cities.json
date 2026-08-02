@@ -1,0 +1,12 @@
+{
+  "mode": "nearest",
+  "source": "local",
+  "generated_at": "2026-08-02T09:17:40Z",
+  "lines": [
+    {"text": "KLM", "colour": "#00A1DE", "style": "title", "scroll": "auto"},
+    {"text": "KL937  AMSTERDAM→DUBLIN  B738", "colour": "#c8c8c8", "style": "body", "scroll": "auto"},
+    {"text": "35,000FT  457KT  12.4MI", "colour": "#808080", "style": "body", "scroll": "auto"}
+  ],
+  "progress": null,
+  "status": "live"
+}

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SkyPanel emulator</title>
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 1rem; background: #0b0d10;
+    color: #8b94a3; font: 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  canvas {
+    image-rendering: pixelated; border-radius: 6px; background: #000;
+    box-shadow: 0 0 60px rgba(60, 120, 220, .18), 0 2px 20px rgba(0, 0, 0, .6);
+    max-width: 96vw;
+  }
+  #status { letter-spacing: .04em; }
+  #status.live { color: #3ddc84; }
+  #status.down { color: #ff5c5c; }
+  label { display: inline-flex; align-items: center; gap: .4rem; }
+</style>
+</head>
+<body>
+  <canvas id="panel" width="640" height="320"></canvas>
+  <div id="status">connecting…</div>
+  <div><label><input type="checkbox" id="smooth"> smooth scaling</label></div>
+<script>
+// The emulator sends one binary message per frame:
+//   uint16 width, uint16 height (little-endian), then RGB bytes.
+const canvas = document.getElementById("panel");
+const ctx = canvas.getContext("2d");
+const status = document.getElementById("status");
+const smooth = document.getElementById("smooth");
+let frames = 0;
+let lastReport = performance.now();
+
+smooth.onchange = () => {
+  canvas.style.imageRendering = smooth.checked ? "auto" : "pixelated";
+};
+
+function connect() {
+  const socket = new WebSocket(`ws://${location.host}/`);
+  socket.binaryType = "arraybuffer";
+
+  socket.onopen = () => {
+    status.textContent = "connected";
+    status.className = "live";
+  };
+
+  socket.onmessage = (event) => {
+    const view = new DataView(event.data);
+    const width = view.getUint16(0, true);
+    const height = view.getUint16(2, true);
+    const rgb = new Uint8Array(event.data, 4);
+
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
+    }
+    const image = ctx.createImageData(width, height);
+    for (let i = 0, j = 0; i < rgb.length; i += 3, j += 4) {
+      image.data[j] = rgb[i];
+      image.data[j + 1] = rgb[i + 1];
+      image.data[j + 2] = rgb[i + 2];
+      image.data[j + 3] = 255;
+    }
+    ctx.putImageData(image, 0, 0);
+
+    frames++;
+    const now = performance.now();
+    if (now - lastReport > 1000) {
+      status.textContent = `${Math.round((frames * 1000) / (now - lastReport))} fps · ${width}×${height}`;
+      frames = 0;
+      lastReport = now;
+    }
+  };
+
+  socket.onclose = () => {
+    status.textContent = "disconnected — retrying";
+    status.className = "down";
+    setTimeout(connect, 1000);
+  };
+}
+
+connect();
+</script>
+</body>
+</html>

@@ -7,11 +7,14 @@ import pytest
 
 from skypanel.airports import AirportRegistry
 from skypanel.colours import (
+    MIN_PANEL_LEVEL,
     dim,
     ensure_legible,
     flight_number,
     normalise_colour,
     operator_code,
+    panel_level,
+    required_linear,
     to_rgb,
 )
 from skypanel.settings import AppConfig, Settings, SettingsError, parse_hhmm
@@ -83,14 +86,27 @@ def test_dim_scales_towards_black():
 
 def test_very_dark_brand_colours_are_lifted_so_they_read_on_the_panel():
     lifted = ensure_legible("#05164D")  # Lufthansa navy
-    assert max(to_rgb(lifted)) >= 48
     # Hue is preserved: blue still dominates.
     r, g, b = to_rgb(lifted)
     assert b > r and b > g
 
 
+@pytest.mark.parametrize("brand", ["#05164D", "#0B1560", "#073590", "#11397E", "#003268"])
+def test_dark_brand_colours_emit_enough_light_after_gamma(brand):
+    # The check that matters is post-gamma: a peak channel of 144 sounds
+    # bright and emits 73, which on a P4 panel is barely there.
+    assert panel_level(brand) < MIN_PANEL_LEVEL, "fixture should be a dark colour"
+    assert panel_level(ensure_legible(brand)) >= MIN_PANEL_LEVEL - 1
+
+
+def test_required_linear_inverts_the_gamma_ramp():
+    for level in (32, 110, 200, 255):
+        assert abs(panel_level(f"#{required_linear(level):02X}0000") - level) <= 1
+
+
 def test_ensure_legible_leaves_bright_colours_alone():
     assert ensure_legible("#FF6600") == "#FF6600"
+    assert ensure_legible("#FFFFFF") == "#FFFFFF"
 
 
 def test_pure_black_becomes_white_rather_than_invisible():

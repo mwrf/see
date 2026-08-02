@@ -1,0 +1,546 @@
+// SkyPanel7 -- the title face.
+//
+// Design notes, because font choice is the single biggest legibility lever at
+// 64x32 and this one was iterated against the emulator's LED-dot view:
+//
+//  * 7px cap height. Big enough that an airline name reads at a glance from
+//    across a room, small enough that three lines plus a progress bar still
+//    fit in 32 rows.
+//  * Single-pixel stems throughout. Two-pixel stems look bolder in a vector
+//    preview and turn into mush on a P4 panel, where each LED already blooms.
+//  * Uppercase only. Airline names are uppercased server-side, so lowercase
+//    would be dead weight in flash; the renderer folds any that slip through.
+//  * Digits are 4 wide against the letters' 5, so "24,000FT" stays compact.
+//  * Contiguous 0x20-0x5A, because that is what GFXfont's first/last range
+//    requires. The rarely-used symbols in the middle are cheap.
+//
+// Edit this file, then run `just fonts`. Never edit the generated header.
+
+name = SkyPanel7
+yAdvance = 8
+baseline = 7
+gap = 1
+
+glyph 0x20 width=0 advance=2
+
+glyph 0x21 width=1
+#
+#
+#
+#
+#
+.
+#
+
+glyph 0x22 width=3
+#.#
+#.#
+...
+...
+...
+...
+...
+
+glyph 0x23 width=5
+.#.#.
+.#.#.
+#####
+.#.#.
+#####
+.#.#.
+.#.#.
+
+glyph 0x24 width=5
+..#..
+.####
+#.#..
+.###.
+..#.#
+####.
+..#..
+
+glyph 0x25 width=5
+##..#
+##.#.
+..#..
+.#...
+#..##
+.#.##
+#....
+
+glyph 0x26 width=5
+.##..
+#..#.
+#.#..
+.#...
+#.#.#
+#..#.
+.##.#
+
+glyph 0x27 width=1
+#
+#
+.
+.
+.
+.
+.
+
+glyph 0x28 width=2
+.#
+#.
+#.
+#.
+#.
+#.
+.#
+
+glyph 0x29 width=2
+#.
+.#
+.#
+.#
+.#
+.#
+#.
+
+glyph 0x2A width=3
+...
+#.#
+.#.
+###
+.#.
+#.#
+...
+
+glyph 0x2B width=5
+.....
+..#..
+..#..
+#####
+..#..
+..#..
+.....
+
+glyph 0x2C width=2
+..
+..
+..
+..
+..
+.#
+#.
+
+glyph 0x2D width=4
+....
+....
+....
+####
+....
+....
+....
+
+glyph 0x2E width=1
+.
+.
+.
+.
+.
+.
+#
+
+glyph 0x2F width=4
+...#
+...#
+..#.
+.#..
+.#..
+#...
+#...
+
+glyph 0x30 width=4
+.##.
+#..#
+#..#
+#..#
+#..#
+#..#
+.##.
+
+glyph 0x31 width=3
+.#.
+##.
+.#.
+.#.
+.#.
+.#.
+###
+
+glyph 0x32 width=4
+.##.
+#..#
+...#
+..#.
+.#..
+#...
+####
+
+glyph 0x33 width=4
+###.
+...#
+...#
+.##.
+...#
+...#
+###.
+
+glyph 0x34 width=4
+..#.
+.##.
+#.#.
+####
+..#.
+..#.
+..#.
+
+glyph 0x35 width=4
+####
+#...
+#...
+###.
+...#
+#..#
+.##.
+
+glyph 0x36 width=4
+.##.
+#..#
+#...
+###.
+#..#
+#..#
+.##.
+
+glyph 0x37 width=4
+####
+...#
+...#
+..#.
+..#.
+.#..
+.#..
+
+glyph 0x38 width=4
+.##.
+#..#
+#..#
+.##.
+#..#
+#..#
+.##.
+
+glyph 0x39 width=4
+.##.
+#..#
+#..#
+.###
+...#
+#..#
+.##.
+
+glyph 0x3A width=1
+.
+.
+#
+.
+.
+#
+.
+
+glyph 0x3B width=2
+..
+..
+.#
+..
+..
+.#
+#.
+
+glyph 0x3C width=3
+..#
+.#.
+#..
+#..
+#..
+.#.
+..#
+
+glyph 0x3D width=4
+....
+....
+####
+....
+####
+....
+....
+
+glyph 0x3E width=3
+#..
+.#.
+..#
+..#
+..#
+.#.
+#..
+
+glyph 0x3F width=4
+.##.
+#..#
+...#
+..#.
+.#..
+....
+.#..
+
+glyph 0x40 width=5
+.###.
+#...#
+#.###
+#.#.#
+#.###
+#....
+.###.
+
+glyph A width=5
+.###.
+#...#
+#...#
+#####
+#...#
+#...#
+#...#
+
+glyph B width=5
+####.
+#...#
+#...#
+####.
+#...#
+#...#
+####.
+
+glyph C width=5
+.###.
+#...#
+#....
+#....
+#....
+#...#
+.###.
+
+glyph D width=5
+####.
+#...#
+#...#
+#...#
+#...#
+#...#
+####.
+
+glyph E width=5
+#####
+#....
+#....
+####.
+#....
+#....
+#####
+
+glyph F width=5
+#####
+#....
+#....
+####.
+#....
+#....
+#....
+
+glyph G width=5
+.###.
+#...#
+#....
+#.###
+#...#
+#...#
+.###.
+
+glyph H width=5
+#...#
+#...#
+#...#
+#####
+#...#
+#...#
+#...#
+
+glyph I width=3
+###
+.#.
+.#.
+.#.
+.#.
+.#.
+###
+
+glyph J width=4
+.###
+...#
+...#
+...#
+...#
+#..#
+.##.
+
+glyph K width=5
+#...#
+#..#.
+#.#..
+##...
+#.#..
+#..#.
+#...#
+
+glyph L width=5
+#....
+#....
+#....
+#....
+#....
+#....
+#####
+
+glyph M width=5
+#...#
+##.##
+#.#.#
+#.#.#
+#...#
+#...#
+#...#
+
+glyph N width=5
+#...#
+##..#
+#.#.#
+#.#.#
+#..##
+#...#
+#...#
+
+glyph O width=5
+.###.
+#...#
+#...#
+#...#
+#...#
+#...#
+.###.
+
+glyph P width=5
+####.
+#...#
+#...#
+####.
+#....
+#....
+#....
+
+glyph Q width=5
+.###.
+#...#
+#...#
+#...#
+#.#.#
+#..#.
+.##.#
+
+glyph R width=5
+####.
+#...#
+#...#
+####.
+#.#..
+#..#.
+#...#
+
+glyph S width=5
+.####
+#....
+#....
+.###.
+....#
+....#
+####.
+
+glyph T width=5
+#####
+..#..
+..#..
+..#..
+..#..
+..#..
+..#..
+
+glyph U width=5
+#...#
+#...#
+#...#
+#...#
+#...#
+#...#
+.###.
+
+glyph V width=5
+#...#
+#...#
+#...#
+#...#
+#...#
+.#.#.
+..#..
+
+glyph W width=5
+#...#
+#...#
+#...#
+#.#.#
+#.#.#
+##.##
+#...#
+
+glyph X width=5
+#...#
+#...#
+.#.#.
+..#..
+.#.#.
+#...#
+#...#
+
+glyph Y width=5
+#...#
+#...#
+.#.#.
+..#..
+..#..
+..#..
+..#..
+
+glyph Z width=5
+#####
+....#
+...#.
+..#..
+.#...
+#....
+#####

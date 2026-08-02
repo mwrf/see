@@ -1,0 +1,30 @@
+{
+  "mode": "tracking",
+  "source": "local",
+  "generated_at": "2026-08-02T12:47:00Z",
+  "lines": [
+    {
+      "text": "BRITISH AIRWAYS",
+      "colour": "#075CAE",
+      "style": "title",
+      "scroll": "auto"
+    },
+    {
+      "text": "BA249  LHR→GRU  B789",
+      "colour": "#c8c8c8",
+      "style": "body",
+      "scroll": "auto"
+    },
+    {
+      "text": "38,000FT  478KT  118MI",
+      "colour": "#808080",
+      "style": "body",
+      "scroll": "auto"
+    }
+  ],
+  "progress": {
+    "fraction": 0.62,
+    "eta": "13:14"
+  },
+  "status": "live"
+}

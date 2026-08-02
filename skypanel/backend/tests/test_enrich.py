@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 
 import pytest
 
+from skypanel.colours import MIN_PANEL_LEVEL, panel_level
 from skypanel.enrich.adsbdb import AdsbdbClient
 from skypanel.enrich.aeroapi import AeroApiClient, QuotaExhausted
 from skypanel.enrich.cache import CacheTTLs, EnrichmentCache
@@ -245,7 +246,10 @@ async def test_enrich_adds_airline_colour_route_and_distance(cache, airlines, ai
     service = EnrichmentService(cache, adsbdb=adsbdb(), airlines=airlines, airports=airports)
     result = await service.enrich(aircraft(), home_lat=HOME_LAT, home_lon=HOME_LON)
     assert result.airline_name == "RYANAIR"
-    assert result.airline_colour == "#073590"
+    #  Ryanair's #073590 lifted so it survives the panel's gamma ramp; hue is
+    #  preserved, only the value changes.
+    assert result.airline_colour == "#0840AE"
+    assert panel_level(result.airline_colour) >= MIN_PANEL_LEVEL - 1
     assert result.route.origin == "EIDW"
     assert result.route.destination_city == "London"
     assert result.distance_mi == pytest.approx(6.1, abs=0.5)

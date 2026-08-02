@@ -1,0 +1,12 @@
+{
+  "mode": "nearest",
+  "source": "local",
+  "generated_at": "2026-08-02T09:28:19Z",
+  "lines": [
+    {"text": "EI-DYR", "colour": "#FFFFFF", "style": "title", "scroll": "auto"},
+    {"text": "EIDYR  C172", "colour": "#c8c8c8", "style": "body", "scroll": "auto"},
+    {"text": "2,500FT  105KT  1.2MI", "colour": "#808080", "style": "body", "scroll": "auto"}
+  ],
+  "progress": null,
+  "status": "live"
+}

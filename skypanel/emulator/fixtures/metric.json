@@ -1,0 +1,12 @@
+{
+  "mode": "nearest",
+  "source": "aggregator",
+  "generated_at": "2026-08-02T09:18:10Z",
+  "lines": [
+    {"text": "LUFTHANSA", "colour": "#3050FF", "style": "title", "scroll": "auto"},
+    {"text": "LH992  FRA→DUB  A21N", "colour": "#c8c8c8", "style": "body", "scroll": "auto"},
+    {"text": "11,582M  886KM/H  29.7KM  ▲1,408FPM", "colour": "#808080", "style": "body", "scroll": "auto"}
+  ],
+  "progress": null,
+  "status": "stale"
+}

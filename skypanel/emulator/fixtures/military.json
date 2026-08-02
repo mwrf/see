@@ -1,0 +1,12 @@
+{
+  "mode": "nearest",
+  "source": "local",
+  "generated_at": "2026-08-02T09:21:50Z",
+  "lines": [
+    {"text": "MIL RCH485", "colour": "#FFFFFF", "style": "title", "scroll": "auto"},
+    {"text": "RCH485  C17", "colour": "#c8c8c8", "style": "body", "scroll": "auto"},
+    {"text": "33,000FT  441KT  2.8MI", "colour": "#808080", "style": "body", "scroll": "auto"}
+  ],
+  "progress": null,
+  "status": "live"
+}

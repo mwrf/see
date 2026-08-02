@@ -1,0 +1,12 @@
+{
+  "mode": "nearest",
+  "source": "local",
+  "generated_at": "2026-08-02T09:25:44Z",
+  "lines": [
+    {"text": "RCG116", "colour": "#FFFFFF", "style": "title", "scroll": "auto"},
+    {"text": "RCG116  S92", "colour": "#c8c8c8", "style": "body", "scroll": "auto"},
+    {"text": "1,200FT  118KT  4.4MI", "colour": "#808080", "style": "body", "scroll": "auto"}
+  ],
+  "progress": null,
+  "status": "live"
+}

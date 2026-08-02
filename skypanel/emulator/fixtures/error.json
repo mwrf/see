@@ -1,0 +1,10 @@
+{
+  "mode": "error",
+  "source": "none",
+  "generated_at": "2026-08-02T09:30:00Z",
+  "lines": [
+    {"text": "COULD NOT FIND AIRCRAFT.JSON", "colour": "#FF4040", "style": "title", "scroll": "auto"}
+  ],
+  "progress": null,
+  "status": "offline"
+}
