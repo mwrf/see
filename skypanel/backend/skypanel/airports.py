@@ -8,9 +8,9 @@ from __future__ import annotations
 
 import csv
 from dataclasses import dataclass
-from functools import lru_cache
 from pathlib import Path
 
+from .coerce import as_float
 from .paths import data_file
 
 DATA_PATH = data_file("airports.csv")
@@ -80,22 +80,8 @@ class AirportRegistry:
                         ident=ident,
                         iata=iata,
                         city=city,
-                        lat=_as_float(row.get("lat")),
-                        lon=_as_float(row.get("lon")),
+                        lat=as_float(row.get("lat")),
+                        lon=as_float(row.get("lon")),
                     )
                 )
         return cls(airports)
-
-
-def _as_float(value: str | None) -> float | None:
-    if value is None or not value.strip():
-        return None
-    try:
-        return float(value)
-    except ValueError:
-        return None
-
-
-@lru_cache(maxsize=1)
-def default_registry() -> AirportRegistry:
-    return AirportRegistry.load()

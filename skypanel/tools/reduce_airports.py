@@ -30,9 +30,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", type=Path, default=Path("backend/data/airports.csv"))
     parser.add_argument(
         "--require-iata",
-        action="store_true",
+        action=argparse.BooleanOptionalAction,
         default=True,
-        help="keep only airports with an IATA code (default)",
+        help="keep only airports with an IATA code (default: yes)",
     )
     parser.add_argument("--all-types", action="store_true", help="keep small airports too")
     args = parser.parse_args(argv)

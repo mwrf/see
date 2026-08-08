@@ -55,12 +55,16 @@ def build_frame(
 ) -> DisplayFrame:
     """Turn one enriched target (or an empty sky) into a frame."""
     generated_at = now or datetime.now(UTC)
+    #  Night mode is a wall-clock decision, so it uses the host's local time --
+    #  the Pi sits in the same timezone as the panel it feeds.
+    brightness = settings.panel_brightness(datetime.now().time())
     if enriched is None:
         return DisplayFrame(
             mode=FrameMode.EMPTY,
             source=source,
             status=status,
             generated_at=generated_at,
+            brightness=brightness,
             lines=[
                 FrameLine(text="NO AIRCRAFT", colour=EMPTY_COLOUR, style=LineStyle.TITLE),
                 FrameLine(
@@ -90,6 +94,7 @@ def build_frame(
         source=source,
         status=status,
         generated_at=generated_at,
+        brightness=brightness,
         lines=lines,
         progress=progress,
     )

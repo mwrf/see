@@ -22,9 +22,50 @@ def client(service, tmp_path):
 
 def test_frame_endpoint_returns_the_documented_shape(client):
     body = client.get("/api/frame").json()
-    assert set(body) == {"mode", "source", "generated_at", "lines", "progress", "status"}
+    assert set(body) == {
+        "mode",
+        "source",
+        "generated_at",
+        "lines",
+        "progress",
+        "status",
+        "brightness",
+    }
     assert body["source"] == "mock"
     assert body["lines"]
+
+
+def test_the_frame_carries_the_resolved_panel_brightness(client):
+    # The frame is the only thing the device polls, so brightness has to ride
+    # on it for a settings change to reach the panel at all.
+    client.post(
+        "/api/settings", json={"brightness": 40, "night_start": "00:00", "night_end": "00:00"}
+    )
+    assert client.get("/api/frame").json()["brightness"] == round(40 * 255 / 100)
+
+
+def test_night_mode_dims_the_frame_it_serves(client, monkeypatch):
+    from datetime import datetime
+
+    import skypanel.frame as frame_module
+
+    client.post(
+        "/api/settings",
+        json={
+            "brightness": 80,
+            "night_brightness": 10,
+            "night_start": "23:00",
+            "night_end": "07:00",
+        },
+    )
+
+    class FixedNow(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 8, 2, 3, 0, 0)
+
+    monkeypatch.setattr(frame_module, "datetime", FixedNow)
+    assert client.get("/api/frame").json()["brightness"] == round(10 * 255 / 100)
 
 
 def test_frame_endpoint_is_not_cached(client):

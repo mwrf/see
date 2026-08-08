@@ -8,7 +8,7 @@ accuracy) and knowing when to give up and go back to nearest.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -39,13 +39,11 @@ class TrackingSession:
     last_seen_at: datetime | None = None
     last_altitude_ft: float | None = None
     last_vert_rate: float | None = None
-    last_distance_mi: float | None = None
     origin: str | None = None
     destination: str | None = None
     total_route_mi: float | None = None
     acquired: bool = False
     ended_reason: str | None = None
-    history: list[tuple[datetime, float, float]] = field(default_factory=list)
 
     def to_json(self) -> dict[str, Any]:
         return {
@@ -69,13 +67,8 @@ class TrackingSession:
         self.last_seen_at = now
         self.last_altitude_ft = ac.alt_baro_ft
         self.last_vert_rate = ac.vert_rate
-        self.last_distance_mi = enriched.distance_mi
         self.origin = enriched.route.origin or self.origin
         self.destination = enriched.route.destination or self.destination
-        if ac.lat is not None and ac.lon is not None:
-            self.history.append((now, ac.lat, ac.lon))
-            if len(self.history) > 720:  # an hour at 5 s polling
-                del self.history[:-720]
 
     def has_landed(self) -> bool:
         """True once the target is on the ground, or was low and descending."""

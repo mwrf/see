@@ -94,6 +94,12 @@ Image renderPanel(const GFXcanvas16 &canvas, const PanelStyle &style) {
   const float centre = static_cast<float>(scale - 1) * 0.5F;
   const float radiusSq = radius * radius;
 
+  //  Gamma-corrected colour per LED, kept so the bloom pass does not have to
+  //  unpack and re-ramp the whole canvas a second time. Two bytes per pixel of
+  //  canvas becomes three, which at 64x32 is 6 KB -- nothing next to the
+  //  scaled output it saves work on.
+  std::vector<uint8_t> lit(static_cast<std::size_t>(panelWidth) * panelHeight * 3, 0);
+
   for (int py = 0; py < panelHeight; ++py) {
     for (int px = 0; px < panelWidth; ++px) {
       uint8_t r = 0;
@@ -103,6 +109,10 @@ Image renderPanel(const GFXcanvas16 &canvas, const PanelStyle &style) {
       r = table[r];
       g = table[g];
       b = table[b];
+      const std::size_t source = (static_cast<std::size_t>(py) * panelWidth + px) * 3;
+      lit[source] = r;
+      lit[source + 1] = g;
+      lit[source + 2] = b;
       if (r == 0 && g == 0 && b == 0) {
         continue;  // unlit LEDs leave the substrate showing
       }
@@ -130,19 +140,19 @@ Image renderPanel(const GFXcanvas16 &canvas, const PanelStyle &style) {
   }
 
   //  Bloom is a cheap one-cell halo rather than a real blur: enough to judge
-  //  whether two adjacent colours will smear into each other on the panel,
-  //  and cheap enough to run every frame.
-  Image bloomed = image;
+  //  whether two adjacent colours will smear into each other on the panel.
+  //  It has to be a second pass because dots are written and halos are added,
+  //  so a single pass would let a later dot erase an earlier neighbour's glow.
+  //  Blended in place -- copying the scaled image first would cost 600 KB a
+  //  frame at the default scale and buys nothing, since the pre-bloom image is
+  //  never read again.
   const int halo = std::max(1, scale / 3);
   for (int py = 0; py < panelHeight; ++py) {
     for (int px = 0; px < panelWidth; ++px) {
-      uint8_t r = 0;
-      uint8_t g = 0;
-      uint8_t b = 0;
-      unpack565(buffer[static_cast<std::size_t>(py) * panelWidth + px], r, g, b);
-      r = table[r];
-      g = table[g];
-      b = table[b];
+      const std::size_t source = (static_cast<std::size_t>(py) * panelWidth + px) * 3;
+      const uint8_t r = lit[source];
+      const uint8_t g = lit[source + 1];
+      const uint8_t b = lit[source + 2];
       if (r == 0 && g == 0 && b == 0) {
         continue;
       }
@@ -152,19 +162,19 @@ Image renderPanel(const GFXcanvas16 &canvas, const PanelStyle &style) {
 
       const int x0 = std::max(0, px * scale - halo);
       const int y0 = std::max(0, py * scale - halo);
-      const int x1 = std::min(bloomed.width - 1, (px + 1) * scale - 1 + halo);
-      const int y1 = std::min(bloomed.height - 1, (py + 1) * scale - 1 + halo);
+      const int x1 = std::min(image.width - 1, (px + 1) * scale - 1 + halo);
+      const int y1 = std::min(image.height - 1, (py + 1) * scale - 1 + halo);
       for (int y = y0; y <= y1; ++y) {
         for (int x = x0; x <= x1; ++x) {
-          const std::size_t offset = bloomed.index(x, y);
-          blend(bloomed.rgb[offset], addR);
-          blend(bloomed.rgb[offset + 1], addG);
-          blend(bloomed.rgb[offset + 2], addB);
+          const std::size_t offset = image.index(x, y);
+          blend(image.rgb[offset], addR);
+          blend(image.rgb[offset + 1], addG);
+          blend(image.rgb[offset + 2], addB);
         }
       }
     }
   }
-  return bloomed;
+  return image;
 }
 
 }  // namespace skypanel

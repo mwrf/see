@@ -4,14 +4,7 @@ import math
 
 import pytest
 
-from skypanel.geo import (
-    bearing_deg,
-    bounding_box,
-    compass_point,
-    haversine_mi,
-    nearest,
-    within_radius,
-)
+from skypanel.geo import bearing_deg, haversine_mi, nearest, within_radius
 from skypanel.units import (
     format_altitude,
     format_distance,
@@ -48,14 +41,6 @@ def test_bearing_due_north_is_zero():
     assert bearing_deg(53.0, -6.0, 54.0, -6.0) == pytest.approx(0.0, abs=0.01)
 
 
-@pytest.mark.parametrize(
-    ("bearing", "expected"),
-    [(0, "N"), (45, "NE"), (90, "E"), (180, "S"), (270, "W"), (359, "N"), (112, "ESE")],
-)
-def test_compass_points(bearing, expected):
-    assert compass_point(bearing) == expected
-
-
 def test_within_radius_sorts_nearest_first_and_drops_far_targets():
     close = aircraft(hex="aaa", lat=53.36, lon=-6.25)
     far = aircraft(hex="bbb", lat=54.50, lon=-6.25)
@@ -71,14 +56,6 @@ def test_within_radius_ignores_aircraft_without_position():
 
 def test_nearest_returns_none_for_empty_sky():
     assert nearest([], HOME_LAT, HOME_LON, 30) is None
-
-
-def test_bounding_box_encloses_the_search_circle():
-    min_lat, min_lon, max_lat, max_lon = bounding_box(HOME_LAT, HOME_LON, 30)
-    assert min_lat < HOME_LAT < max_lat
-    assert min_lon < HOME_LON < max_lon
-    # The box must be at least as wide as the circle it encloses.
-    assert haversine_mi(HOME_LAT, HOME_LON, max_lat, HOME_LON) >= 29
 
 
 @pytest.mark.parametrize(

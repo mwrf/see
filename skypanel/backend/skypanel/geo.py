@@ -29,29 +29,6 @@ def bearing_deg(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return (math.degrees(math.atan2(y, x)) + 360.0) % 360.0
 
 
-def compass_point(bearing: float) -> str:
-    """Nearest 16-point compass abbreviation for a bearing."""
-    points = (
-        "N",
-        "NNE",
-        "NE",
-        "ENE",
-        "E",
-        "ESE",
-        "SE",
-        "SSE",
-        "S",
-        "SSW",
-        "SW",
-        "WSW",
-        "W",
-        "WNW",
-        "NW",
-        "NNW",
-    )
-    return points[int((bearing % 360.0) / 22.5 + 0.5) % 16]
-
-
 def within_radius(
     aircraft: Iterable[Aircraft], lat: float, lon: float, radius_mi: float
 ) -> list[tuple[Aircraft, float]]:
@@ -76,15 +53,3 @@ def nearest(
     """The closest aircraft within ``radius_mi``, or ``None`` for an empty sky."""
     candidates = within_radius(aircraft, lat, lon, radius_mi)
     return candidates[0] if candidates else None
-
-
-def bounding_box(lat: float, lon: float, radius_mi: float) -> tuple[float, float, float, float]:
-    """A (min_lat, min_lon, max_lat, max_lon) box enclosing the search circle.
-
-    Used to pre-filter large aggregator responses cheaply before running the
-    exact haversine test.
-    """
-    d_lat = radius_mi / 69.0
-    cos_lat = max(0.01, math.cos(math.radians(lat)))
-    d_lon = radius_mi / (69.0 * cos_lat)
-    return (lat - d_lat, lon - d_lon, lat + d_lat, lon + d_lon)

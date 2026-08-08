@@ -81,9 +81,6 @@ bool EmulatorDisplay::begin() {
 
 void EmulatorDisplay::show(const GFXcanvas16 &canvas) {
   lastImage_ = renderPanel(canvas, style_);
-  if (hook_) {
-    hook_(lastImage_);
-  }
   if (headless_) {
     return;
   }

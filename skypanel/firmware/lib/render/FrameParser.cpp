@@ -133,6 +133,14 @@ ParseResult parseFrame(const char *jsonText, DisplayFrame &out) {
     frame.lineCount++;
   }
 
+  const int16_t brightness = doc.member(root, "brightness");
+  if (brightness >= 0 && !doc.isNull(brightness)) {
+    const double value = doc.numberAt(brightness, -1.0);
+    if (value >= 0.0) {
+      frame.brightness = static_cast<int16_t>(value > 255.0 ? 255.0 : value);
+    }
+  }
+
   const int16_t progress = doc.member(root, "progress");
   if (progress >= 0 && !doc.isNull(progress)) {
     frame.hasProgress = true;

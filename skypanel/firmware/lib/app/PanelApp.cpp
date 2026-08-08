@@ -34,7 +34,18 @@ bool PanelApp::begin() {
   return true;
 }
 
-void PanelApp::setFrame(const DisplayFrame &frame) { renderer_.setFrame(frame); }
+void PanelApp::setFrame(const DisplayFrame &frame) {
+  renderer_.setFrame(frame);
+  dirty_ = true;
+  //  Brightness is resolved server-side from the user's day/night settings and
+  //  rides on the frame, so a settings change reaches the panel on its next
+  //  poll like everything else. A frame without one leaves the panel alone.
+  if (frame.brightness >= 0) {
+    display_.setBrightness(static_cast<uint8_t>(frame.brightness));
+  }
+}
+
+bool PanelApp::needsRedraw() const { return dirty_ || renderer_.animating(); }
 
 void PanelApp::tick(uint32_t nowMs) {
   //  Unsigned comparison against a deadline handles the millis() wrap without
@@ -49,7 +60,15 @@ void PanelApp::tick(uint32_t nowMs) {
   }
   nextFrameMs_ = nowMs + config_.frameIntervalMs;
 
+  //  Always advance the animation clock, even when nothing will be drawn:
+  //  skipping it would let a long static stretch accumulate into one huge
+  //  delta and jump a marquee past its dwell the moment a scrolling line
+  //  arrives.
   renderer_.tick(nowMs);
+  if (!needsRedraw()) {
+    return;
+  }
+  dirty_ = false;
   renderer_.render();
   display_.show(renderer_.canvas());
 }
@@ -63,8 +82,7 @@ void PanelApp::poll(uint32_t nowMs) {
     //  Keep showing the last good frame briefly -- a single dropped poll on
     //  WiFi is routine -- but not indefinitely.
     if (!haveSuccess_ || (nowMs - lastSuccessMs_) >= config_.staleAfterMs) {
-      renderer_.setFrame(makeErrorFrame(response.error[0] != '\0' ? response.error
-                                                                 : "NO BACKEND"));
+      setFrame(makeErrorFrame(response.error[0] != '\0' ? response.error : "NO BACKEND"));
     }
     return;
   }
@@ -74,32 +92,30 @@ void PanelApp::poll(uint32_t nowMs) {
   if (!parsed) {
     ++failureCount_;
     lastPollOk_ = false;
-    renderer_.setFrame(makeErrorFrame("BAD FRAME"));
+    setFrame(makeErrorFrame("BAD FRAME"));
     return;
   }
 
   lastPollOk_ = true;
   haveSuccess_ = true;
   lastSuccessMs_ = nowMs;
-  renderer_.setFrame(frame);
+  setFrame(frame);
 }
 
 void PanelApp::onButton(ButtonEvent event, uint32_t nowMs) {
   switch (event) {
     case ButtonEvent::TopShort:
-      //  Cycling the info lines is a display-side preference; the backend
-      //  decides what the lines say, so all this does is ask for a fresh one.
-      infoMode_ = static_cast<uint8_t>((infoMode_ + 1) % 3);
-      requestPoll();
-      break;
     case ButtonEvent::TopLong:
+      //  The backend decides what the lines say, so the useful thing either
+      //  press can do is ask for a fresh frame rather than shuffle a local
+      //  mode the renderer would ignore anyway.
       requestPoll();
       break;
     case ButtonEvent::SetupHold:
       //  Provisioning is the firmware's business; from here it looks like a
       //  request to stop drawing.
       display_.clear();
-      renderer_.setFrame(makeErrorFrame("SETUP MODE"));
+      setFrame(makeErrorFrame("SETUP MODE"));
       break;
     case ButtonEvent::None:
       break;

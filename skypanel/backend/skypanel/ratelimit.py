@@ -13,9 +13,10 @@ from collections.abc import Callable
 class TokenBucket:
     """Classic token bucket: ``rate`` tokens per second, ``capacity`` burst.
 
-    :meth:`acquire` waits until a token is available.  :meth:`try_acquire`
-    never waits and is used by the health check, which should not be able to
-    consume the poller's budget.
+    :meth:`acquire` waits until a token is available; it is what the poller
+    uses.  :meth:`try_acquire` never waits, so a caller that must not block --
+    or a test asserting the bucket is empty -- can ask without joining the
+    queue.
     """
 
     def __init__(

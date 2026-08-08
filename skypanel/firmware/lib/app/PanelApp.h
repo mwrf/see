@@ -58,6 +58,10 @@ class PanelApp {
   /// Which source produced the frame currently on screen ("local", "mock"...).
   const char *sourceLabel() const { return renderer_.frame().source; }
 
+  /// True while the panel needs redrawing -- either the frame changed or a
+  /// line is mid-scroll.
+  bool needsRedraw() const;
+
   uint32_t pollCount() const { return pollCount_; }
   uint32_t failureCount() const { return failureCount_; }
   bool lastPollOk() const { return lastPollOk_; }
@@ -83,9 +87,8 @@ class PanelApp {
   bool lastPollOk_ = false;
   uint32_t pollCount_ = 0;
   uint32_t failureCount_ = 0;
-  /// Cycles which line the top button emphasises; reserved for the info-line
-  /// cycling described in the hardware spec.
-  uint8_t infoMode_ = 0;
+  /// Set whenever the frame changes; cleared once it has been drawn.
+  bool dirty_ = true;
 
   char buffer_[kBufferBytes] = {};
   char url_[128] = {};

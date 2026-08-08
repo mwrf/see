@@ -58,7 +58,8 @@ just serve                 # http://localhost:8000
     {"text": "24,000FT  410KT  6.1MI", "colour": "#808080", "style": "body", "scroll": "auto"}
   ],
   "progress": null,
-  "status": "live"
+  "status": "live",
+  "brightness": 153
 }
 ```
 
@@ -67,6 +68,10 @@ just serve                 # http://localhost:8000
 * `scroll` — `none` | `auto`; *auto* means scroll **only if** the string
   overflows 64 px, which the renderer decides from its own metrics
 * `progress` — `{"fraction": 0.62, "eta": "13:14"}` in tracking mode, else null
+* `brightness` — 0–255, already resolved from the day/night settings. It rides
+  on the frame because the frame is the only thing the device polls, which is
+  what makes "the device picks settings up on its next poll" true of brightness
+  as well as of units and colours. `null` means "leave the panel as it is"
 
 This endpoint never returns 5xx. A dead receiver produces an `error` frame,
 because a device that gets a 500 has nothing to show and no way to say why.
@@ -151,7 +156,7 @@ just test-backend
 just lint          # ruff + ruff format --check + mypy --strict
 ```
 
-280 tests, none of which touch the network. Every outbound call goes through
+275 tests, none of which touch the network. Every outbound call goes through
 one `HttpClient` with a timeout and a retry policy, and the tests inject
 recorded cassettes into it (`tests/cassettes/`). The clock is injectable
 everywhere it matters, so rate limiting, backoff, TTL expiry and failover

@@ -38,7 +38,7 @@ Four things shape the design:
    offline work.
 3. **Thin firmware, smart backend.** The device does display, buttons and
    WiFi. API calls, enrichment, caching and unit conversion happen on the Pi.
-4. **Everything testable on a laptop.** 280 backend tests and 110 native
+4. **Everything testable on a laptop.** 275 backend tests and 114 native
    render tests, including 13 golden images. None touch the network; none need
    a display server.
 

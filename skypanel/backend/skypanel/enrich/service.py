@@ -14,12 +14,14 @@ a frame that never arrives is not.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
 from ..airports import AirportRegistry
+from ..coerce import as_str as _str
 from ..colours import AirlineRegistry, ensure_legible, operator_code
 from ..geo import bearing_deg, haversine_mi
 from ..models import Aircraft, EnrichedAircraft, Route
@@ -145,7 +147,6 @@ class EnrichmentService:
         *,
         home_lat: float,
         home_lon: float,
-        prefer_cities: bool = False,
         lookup: bool = True,
     ) -> EnrichedAircraft:
         """Produce a fully-populated record for one target.
@@ -166,24 +167,28 @@ class EnrichmentService:
 
         route_record: dict[str, Any] | None = None
         if lookup:
-            route_record = await self.route_for(aircraft.callsign)
-            if not aircraft.type_code or not aircraft.registration:
-                ac_record = await self.aircraft_for(aircraft.hex)
-                if ac_record:
-                    #  Backfilling onto the caller's Aircraft is deliberate: the
-                    #  poller hands us the same objects every second, and a type
-                    #  code that arrived from enrichment should not have to be
-                    #  looked up again on the next frame.
-                    aircraft.type_code = aircraft.type_code or _str(ac_record.get("type_code"))
-                    aircraft.registration = aircraft.registration or _str(
-                        ac_record.get("registration")
-                    )
-                    #  Re-run categorisation: a type code can turn "unknown"
-                    #  into "helicopter".
-                    enriched.category = categorise(aircraft, self.airlines)
+            #  The route and aircraft lookups are independent -- different
+            #  cache keys, different endpoints -- so on a first sighting, when
+            #  neither is cached, running them together halves the latency
+            #  before the target can appear on the panel.
+            need_aircraft = not aircraft.type_code or not aircraft.registration
+            route_record, ac_record = await asyncio.gather(
+                self.route_for(aircraft.callsign),
+                self.aircraft_for(aircraft.hex) if need_aircraft else _none(),
+            )
+            if ac_record:
+                #  Backfilling onto the caller's Aircraft is deliberate: the
+                #  poller hands us the same objects every second, and a type
+                #  code that arrived from enrichment should not have to be
+                #  looked up again on the next frame.
+                aircraft.type_code = aircraft.type_code or _str(ac_record.get("type_code"))
+                aircraft.registration = aircraft.registration or _str(ac_record.get("registration"))
+                #  Re-run categorisation: a type code can turn "unknown"
+                #  into "helicopter".
+                enriched.category = categorise(aircraft, self.airlines)
 
         self._apply_airline(enriched, route_record)
-        self._apply_route(enriched, route_record, prefer_cities=prefer_cities)
+        self._apply_route(enriched, route_record)
         return enriched
 
     def _apply_airline(self, enriched: EnrichedAircraft, record: dict[str, Any] | None) -> None:
@@ -203,9 +208,13 @@ class EnrichmentService:
             enriched.airline_name = str(record["airline_name"]).upper()
             enriched.airline_colour = "#FFFFFF"
 
-    def _apply_route(
-        self, enriched: EnrichedAircraft, record: dict[str, Any] | None, *, prefer_cities: bool
-    ) -> None:
+    def _apply_route(self, enriched: EnrichedAircraft, record: dict[str, Any] | None) -> None:
+        """Store both the codes and the cities.
+
+        Which of the two reaches the panel is a display decision, made in
+        :mod:`skypanel.frame` from the user's settings -- so this records
+        everything it knows and expresses no preference.
+        """
         if not record:
             return
         origin = _str(record.get("origin")) or _str(record.get("origin_iata"))
@@ -221,12 +230,6 @@ class EnrichmentService:
         )
 
 
-def _str(value: Any) -> str | None:
-    if isinstance(value, str) and value.strip():
-        return value.strip()
-    return None
-
-
 def _parse_dt(value: Any) -> datetime | None:
     if not isinstance(value, str) or not value.strip():
         return None
@@ -235,3 +238,8 @@ def _parse_dt(value: Any) -> datetime | None:
     except ValueError:
         return None
     return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
+
+
+async def _none() -> None:
+    """An awaitable that yields nothing, so gather() can take a fixed shape."""
+    return None

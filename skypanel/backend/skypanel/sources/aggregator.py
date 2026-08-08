@@ -14,6 +14,8 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
+from ..coerce import as_float as _as_float
+from ..coerce import as_str as _as_str
 from ..http import HttpClient, HttpError, RetryPolicy
 from ..models import Aircraft
 from ..ratelimit import TokenBucket
@@ -85,8 +87,6 @@ class AggregatorSource:
         self._health = HealthTracker()
         #: Last successful response, replayed when a poll fails.
         self._last_good: list[Aircraft] = []
-        self._last_good_at: float | None = None
-        self.request_count = 0
 
     @property
     def healthy(self) -> bool:
@@ -127,10 +127,8 @@ class AggregatorSource:
                 "a local receiver avoids this entirely",
             ) from exc
 
-        self.request_count += 1
         aircraft = parse_v2_response(payload)
         self._last_good = aircraft
-        self._last_good_at = time.monotonic()
         self._health.record_success(time.monotonic())
         return list(aircraft)
 
@@ -195,24 +193,3 @@ def _parse_v2_entry(entry: dict[str, Any]) -> Aircraft | None:
         category=_as_str(entry.get("category")),
         seen_pos_s=_as_float(entry.get("seen_pos")),
     )
-
-
-def _as_float(value: Any) -> float | None:
-    if isinstance(value, bool):
-        return None
-    if isinstance(value, int | float):
-        return float(value)
-    if isinstance(value, str):
-        try:
-            return float(value)
-        except ValueError:
-            return None
-    return None
-
-
-def _as_str(value: Any) -> str | None:
-    if isinstance(value, str):
-        return value.strip() or None
-    if isinstance(value, int | float) and not isinstance(value, bool):
-        return str(value)
-    return None

@@ -88,13 +88,6 @@ def test_a_low_flight_that_vanishes_is_assumed_to_have_landed():
     assert s.should_end(START + timedelta(minutes=3)) == "landed"
 
 
-def test_position_history_is_bounded():
-    s = session()
-    for i in range(1000):
-        s.observe(enriched(), START + timedelta(seconds=i))
-    assert len(s.history) <= 720
-
-
 # -- progress -----------------------------------------------------------
 
 

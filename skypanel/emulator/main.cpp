@@ -252,23 +252,27 @@ int runRecording(const Options &options, PanelApp &app, EmulatorDisplay &display
   const uint32_t total = static_cast<uint32_t>(options.durationS * 1000.0F);
   bool started = false;
 
-  display.setFrameHook([&](const skypanel::Image &image) {
+  //  Read the image after each tick rather than hooking show(): the app skips
+  //  drawing while a frame is static, and a recording still wants a GIF frame
+  //  for every one of those ticks or it would play back too fast.
+  for (uint32_t t = 0; t <= total; t += step) {
+    app.tick(t);
+    const skypanel::Image &image = display.lastImage();
+    if (image.empty()) {
+      continue;
+    }
     if (!started) {
       if (!gif.begin(options.recordPath, image.width, image.height, delayCs, error)) {
         std::fprintf(stderr, "recording failed: %s\n", error.c_str());
-        return;
+        return 1;
       }
       started = true;
     }
     if (!gif.addFrame(image, error)) {
       std::fprintf(stderr, "recording failed: %s\n", error.c_str());
+      return 1;
     }
-  });
-
-  for (uint32_t t = 0; t <= total; t += step) {
-    app.tick(t);
   }
-  display.setFrameHook(nullptr);
 
   if (!gif.finish(error)) {
     std::fprintf(stderr, "recording failed: %s\n", error.c_str());

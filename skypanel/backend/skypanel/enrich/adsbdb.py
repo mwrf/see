@@ -15,6 +15,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from ..coerce import field_str as _get
 from ..http import HttpClient, HttpError
 
 log = logging.getLogger(__name__)
@@ -111,11 +112,3 @@ def _response_body(payload: Any) -> dict[str, Any] | None:
         return None
     response = payload.get("response")
     return response if isinstance(response, dict) else None
-
-
-def _get(obj: Any, key: str) -> str | None:
-    if isinstance(obj, dict):
-        value = obj.get(key)
-        if isinstance(value, str) and value.strip():
-            return value.strip()
-    return None

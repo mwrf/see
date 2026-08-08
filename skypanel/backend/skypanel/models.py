@@ -177,6 +177,13 @@ class DisplayFrame:
     progress: Progress | None = None
     status: FrameStatus = FrameStatus.LIVE
     generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    #: Panel brightness, 0-255, already resolved from the user's day/night
+    #: settings.  It rides on the frame because the frame is the only thing the
+    #: device polls -- which is what makes "the device picks settings up on its
+    #: next poll" true of brightness as well as of everything else.  ``None``
+    #: means "leave it alone", which is what a device with no settings yet and
+    #: every golden-image fixture relies on.
+    brightness: int | None = None
 
     def to_json(self) -> dict[str, Any]:
         return {
@@ -186,6 +193,7 @@ class DisplayFrame:
             "lines": [line.to_json() for line in self.lines],
             "progress": self.progress.to_json() if self.progress else None,
             "status": str(self.status),
+            "brightness": self.brightness,
         }
 
     @classmethod

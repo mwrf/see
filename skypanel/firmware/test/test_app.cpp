@@ -25,6 +25,10 @@ namespace {
 const char *kGoodFrame = R"({"mode":"nearest","source":"local","status":"live",
   "lines":[{"text":"RYANAIR","colour":"#073590","style":"title","scroll":"auto"}]})";
 
+/// A title wide enough to overflow 64px, so its line marquees.
+const char *kScrollingFrame = R"({"mode":"nearest","source":"local","status":"live",
+  "lines":[{"text":"BRITISH AIRWAYS PLC","colour":"#075CAE","style":"title","scroll":"auto"}]})";
+
 /// A client the test drives: it never touches a socket.
 class FakeHttpClient : public IHttpClient {
  public:
@@ -119,12 +123,65 @@ TEST(the_app_polls_on_its_interval_not_every_tick) {
 TEST(the_app_redraws_between_polls_so_scrolling_stays_smooth) {
   FakeHttpClient http;
   FakeDisplay display;
+  //  A title too long for 64px, so the line genuinely marquees.
+  http.body = kScrollingFrame;
   PanelApp app(http, display, testConfig());
-  for (uint32_t t = 0; t < 1000; t += 33) {
+  for (uint32_t t = 0; t < 3000; t += 33) {
     app.tick(t);
   }
   CHECK_EQ(http.calls, 1);
   CHECK(display.shows > 25);
+}
+
+TEST(a_static_frame_is_drawn_once_rather_than_thirty_times_a_second) {
+  //  Nothing on screen is moving, so re-running the glyph walk and re-blitting
+  //  2048 pixels every 33 ms would be pure waste -- and on the device it is
+  //  most of the time between polls.
+  FakeHttpClient http;
+  FakeDisplay display;
+  PanelApp app(http, display, testConfig());
+  for (uint32_t t = 0; t < 3000; t += 33) {
+    app.tick(t);
+  }
+  CHECK_EQ(http.calls, 1);
+  CHECK_EQ(display.shows, 1);
+  CHECK(!app.needsRedraw());
+}
+
+TEST(a_new_frame_always_forces_a_redraw) {
+  FakeHttpClient http;
+  FakeDisplay display;
+  PanelApp app(http, display, testConfig());
+  app.tick(0);
+  CHECK_EQ(display.shows, 1);
+
+  http.body = kScrollingFrame;
+  app.tick(5000);
+  CHECK_EQ(display.shows, 2);
+}
+
+TEST(brightness_from_the_frame_reaches_the_display) {
+  //  Night mode is resolved server-side; the frame is the only thing the
+  //  device polls, so this is the whole delivery path.
+  FakeHttpClient http;
+  FakeDisplay display;
+  http.body =
+      R"({"mode":"nearest","source":"local","status":"live","brightness":38,)"
+      R"("lines":[{"text":"A","colour":"#fff","style":"title"}]})";
+  PanelApp app(http, display, testConfig());
+  app.tick(0);
+  CHECK_EQ(static_cast<int>(display.brightness), 38);
+}
+
+TEST(a_frame_without_brightness_leaves_the_panel_alone) {
+  FakeHttpClient http;
+  FakeDisplay display;
+  PanelAppConfig config = testConfig();
+  config.brightness = 123;
+  PanelApp app(http, display, config);
+  CHECK(app.begin());
+  app.tick(0);
+  CHECK_EQ(static_cast<int>(display.brightness), 123);
 }
 
 TEST(a_failed_poll_keeps_the_last_good_frame_briefly) {

@@ -12,6 +12,8 @@ import logging
 import time
 from typing import Any
 
+from ..coerce import as_float as _as_float
+from ..coerce import as_str as _as_str
 from ..http import HttpClient, HttpError
 from ..models import Aircraft
 from .base import HealthTracker, SourceError
@@ -196,24 +198,3 @@ def _clean_callsign(raw: Any) -> str | None:
         return None
     stripped = text.strip().upper()
     return stripped or None
-
-
-def _as_float(value: Any) -> float | None:
-    if isinstance(value, bool):
-        return None
-    if isinstance(value, int | float):
-        return float(value)
-    if isinstance(value, str):
-        try:
-            return float(value)
-        except ValueError:
-            return None
-    return None
-
-
-def _as_str(value: Any) -> str | None:
-    if isinstance(value, str):
-        return value.strip() or None
-    if isinstance(value, int | float) and not isinstance(value, bool):
-        return str(value)
-    return None

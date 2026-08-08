@@ -30,11 +30,6 @@ class WebSocketServer {
   /// [uint16 width][uint16 height][RGB bytes], little-endian.
   void broadcast(const Image &image);
 
-  /// Serve the single-page viewer at "/" over the same port.
-  void setPage(std::string html) { page_ = std::move(html); }
-
-  int clientCount() const { return static_cast<int>(clients_.size()); }
-  int port() const { return port_; }
   void stop();
 
  private:
@@ -43,7 +38,6 @@ class WebSocketServer {
   int listenFd_ = -1;
   int port_ = 0;
   std::vector<int> clients_;
-  std::string page_;
 };
 
 /// The browser viewer, embedded so the binary is self-contained.

@@ -195,7 +195,17 @@ class Settings:
         return now >= start or now < end
 
     def effective_brightness(self, now: dtime) -> int:
+        """Brightness percentage for this moment, honouring the night window."""
         return self.night_brightness if self.is_night(now) else self.brightness
+
+    def panel_brightness(self, now: dtime) -> int:
+        """The same value on the 0-255 scale the panel driver wants.
+
+        Converted here rather than on the device: the user thinks in percent,
+        the HUB75 driver thinks in bytes, and the device should not have to
+        know that those are different things.
+        """
+        return round(self.effective_brightness(now) * 255 / 100)
 
     def to_json(self) -> dict[str, Any]:
         return asdict(self)

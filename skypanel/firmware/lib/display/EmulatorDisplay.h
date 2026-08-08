@@ -6,7 +6,6 @@
 // snapshot suite builds and runs on a machine with no display libraries.
 #pragma once
 
-#include <functional>
 #include <string>
 
 #include "IDisplay.h"
@@ -16,10 +15,6 @@ namespace skypanel {
 
 class EmulatorDisplay : public IDisplay {
  public:
-  /// Called with every simulated frame. Used by --record and by the WebSocket
-  /// broadcaster, so neither has to know how the window works.
-  using FrameHook = std::function<void(const Image &)>;
-
   explicit EmulatorDisplay(PanelStyle style = {}, bool headless = false);
   ~EmulatorDisplay() override;
 
@@ -32,12 +27,12 @@ class EmulatorDisplay : public IDisplay {
   /// True when SDL2 was compiled in. False means only headless mode works.
   static bool hasWindow();
 
-  void setFrameHook(FrameHook hook) { hook_ = std::move(hook); }
-
   /// Shown in the window title, alongside the FPS counter.
   void setSourceLabel(const std::string &label) { sourceLabel_ = label; }
 
-  /// The most recent simulated frame, for --snapshot.
+  /// The most recent simulated frame. Both --snapshot and --record read it
+  /// after ticking the app, which also covers the ticks where the app decided
+  /// nothing needed redrawing.
   const Image &lastImage() const { return lastImage_; }
 
   PanelStyle &style() { return style_; }
@@ -56,7 +51,6 @@ class EmulatorDisplay : public IDisplay {
   bool headless_ = false;
   bool running_ = true;
   Image lastImage_;
-  FrameHook hook_;
   std::string sourceLabel_ = "?";
   float fps_ = 0.0F;
   int framesSinceTitle_ = 0;

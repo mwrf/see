@@ -170,7 +170,6 @@ class SkyPanelService:
                 candidate,
                 home_lat=self.settings.home_lat,
                 home_lon=self.settings.home_lon,
-                prefer_cities=self.settings.route_display == "cities",
             )
             if passes_filters(enriched, self.settings):
                 return enriched
@@ -189,7 +188,6 @@ class SkyPanelService:
                 match,
                 home_lat=self.settings.home_lat,
                 home_lon=self.settings.home_lon,
-                prefer_cities=self.settings.route_display == "cities",
             )
             session.observe(enriched, now)
             self.last_enriched = enriched

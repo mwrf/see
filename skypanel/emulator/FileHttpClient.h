@@ -30,18 +30,15 @@ class FileHttpClient : public IHttpClient {
   void setStepMs(uint32_t stepMs) { stepMs_ = stepMs == 0 ? 1 : stepMs; }
 
   std::size_t frameCount() const { return frames_.size(); }
-  std::size_t currentIndex() const;
-  bool looping() const { return loop_; }
-  void setLooping(bool loop) { loop_ = loop; }
 
-  /// True once a non-looping scenario has played its last frame.
-  bool exhausted() const;
+  /// Which frame the virtual clock currently selects. Scenarios always loop --
+  /// the emulator is something you leave running.
+  std::size_t currentIndex() const;
 
  private:
   std::vector<std::string> frames_;
   uint32_t virtualMs_ = 0;
   uint32_t stepMs_ = 1000;
-  bool loop_ = true;
 };
 
 }  // namespace skypanel

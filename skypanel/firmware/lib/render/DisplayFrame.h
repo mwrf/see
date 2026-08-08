@@ -57,6 +57,10 @@ struct Progress {
 struct DisplayFrame {
   FrameMode mode = FrameMode::Empty;
   FrameStatus status = FrameStatus::Offline;
+  /// Panel brightness 0-255, already resolved from the user's day/night
+  /// settings. -1 means the frame did not carry one, so leave the panel as it
+  /// is -- which is what an older backend, and every offline fixture, does.
+  int16_t brightness = -1;
   char source[kMaxSourceBytes] = {};
   FrameLine lines[kMaxLines];
   uint8_t lineCount = 0;

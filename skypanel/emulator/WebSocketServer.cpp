@@ -207,7 +207,7 @@ bool WebSocketServer::handshake(int fd) {
   if (key.empty()) {
     //  Not a WebSocket upgrade: serve the viewer page so a single URL is all
     //  the user needs.
-    const std::string body = page_.empty() ? std::string(webViewerHtml()) : page_;
+    const std::string body(webViewerHtml());
     const std::string response =
         "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: " +
         std::to_string(body.size()) + "\r\nConnection: close\r\n\r\n" + body;

@@ -151,10 +151,9 @@ def categorise(aircraft: Aircraft, registry: AirlineRegistry | None = None) -> C
     if callsign:
         code = operator_code(callsign)
         if code:
-            #  A known operator is definitive; an unknown three-letter prefix
-            #  with a flight number is still almost certainly commercial.
-            if registry is None or code in registry:
-                return "airline"
+            #  An operator code plus a flight number is commercial traffic
+            #  whether or not that operator is in our colour table -- an
+            #  unknown airline still renders, just in white.
             return "airline"
         if REGISTRATION_RE.match(callsign):
             return "ga"

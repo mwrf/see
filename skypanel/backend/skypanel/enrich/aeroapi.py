@@ -12,6 +12,7 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
+from ..coerce import field_str as _field
 from ..http import HttpClient, HttpError
 from .cache import EnrichmentCache
 
@@ -153,12 +154,4 @@ def _code(obj: Any) -> str | None:
             value = obj.get(key)
             if isinstance(value, str) and value.strip():
                 return value.strip().upper()
-    return None
-
-
-def _field(obj: Any, key: str) -> str | None:
-    if isinstance(obj, dict):
-        value = obj.get(key)
-        if isinstance(value, str) and value.strip():
-            return value.strip()
     return None

@@ -51,16 +51,7 @@ std::size_t FileHttpClient::currentIndex() const {
   if (frames_.size() <= 1) {
     return 0;
   }
-  const std::size_t step = virtualMs_ / stepMs_;
-  if (loop_) {
-    return step % frames_.size();
-  }
-  return step >= frames_.size() ? frames_.size() - 1 : step;
-}
-
-bool FileHttpClient::exhausted() const {
-  return !loop_ && frames_.size() > 1 &&
-         (virtualMs_ / stepMs_) >= frames_.size();
+  return (virtualMs_ / stepMs_) % frames_.size();
 }
 
 HttpResponse FileHttpClient::get(const char *url, char *buffer,
