@@ -1,0 +1,14 @@
+{
+  "name": "see",
+  "version": "2.0.0",
+  "description": "A go/ links style short URL server backed by SQLite",
+  "private": true,
+  "main": "see.js",
+  "bin": { "see": "see.js" },
+  "scripts": {
+    "start": "node see.js",
+    "dev": "node --watch see.js 8080",
+    "test": "node --disable-warning=ExperimentalWarning --test"
+  },
+  "engines": { "node": ">=22.13" }
+}

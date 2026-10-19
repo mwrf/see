@@ -1,0 +1,6 @@
+node_modules/
+see.db
+see.db-*
+*.db
+*.db-wal
+*.db-shm
