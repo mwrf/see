@@ -2,14 +2,14 @@
 'use strict';
 
 /*
- *  see — a go/ links style short URL server.
+ *  see — a short link server: type see/name to go anywhere.
  *
  *  Usage: node see.js [port]
  *
  *  Environment:
  *    PORT             port to listen on (default 80; the first argument wins)
  *    SEE_DB           SQLite database file (default ./see.db)
- *    SEE_PREFIX       label shown before names, e.g. "go/" (default: host name + "/")
+ *    SEE_PREFIX       label shown before names (default "see/")
  *    SEE_USER_HEADER  header from your auth proxy naming the user, e.g. x-forwarded-email.
  *                     Enables link ownership. Leave unset to let anyone edit.
  *    SEE_ADMINS       comma-separated users who can edit any link

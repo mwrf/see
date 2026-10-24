@@ -25,7 +25,7 @@ const SECURITY_HEADERS = {
 
 // options:
 //   store       - a Store instance
-//   prefix      - label shown before link names, e.g. "go/" (default: request host + "/")
+//   prefix      - label shown before link names, default "see/"
 //   userHeader  - header set by an auth proxy that names the signed-in user
 //                 (e.g. "x-forwarded-email"). When set, links are owned and only
 //                 their owner (or an admin) can change them.
@@ -40,7 +40,7 @@ function createHandler({ store, prefix, userHeader = '', admins = [], logger = (
     const user = userHeader ? String(req.headers[userHeader] || '').trim() : '';
     return {
       origin: `${proto}://${host}`,
-      prefix: prefix || host.replace(/:\d+$/, '') + '/',
+      prefix: prefix || 'see/',
       user,
     };
   }
@@ -198,8 +198,8 @@ function createHandler({ store, prefix, userHeader = '', admins = [], logger = (
     send(res, 200, views.home({ ...ctx, rows, total: store.count(), q, sort }));
   }
 
-  // go/name[/rest][?query]  -> redirect
-  // go/name+                -> details page
+  // see/name[/rest][?query]  -> redirect
+  // see/name+                -> details page
   // unknown name            -> 404 page offering to create it
   function shortlink(req, res, ctx, url) {
     const [first, ...restParts] = url.pathname.slice(1).split('/');

@@ -38,7 +38,7 @@ function layout({ title, prefix, user, body }) {
 ${body}
 </main>
 <footer class="wrap footer">
-  <span>see — short links, go/ style.</span>
+  <span>see — short links for everything.</span>
   <a href="/.export">Export JSON</a>
 </footer>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>

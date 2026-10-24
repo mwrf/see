@@ -7,7 +7,7 @@ const { createServer } = require('../src/server');
 
 async function start(options = {}) {
   const store = new Store(':memory:');
-  const server = createServer({ store, prefix: 'go/', ...options });
+  const server = createServer({ store, prefix: 'see/', ...options });
   await new Promise((r) => server.listen(0, '127.0.0.1', r));
   const base = `http://127.0.0.1:${server.address().port}`;
   const req = (path, init = {}) => fetch(base + path, { redirect: 'manual', ...init });

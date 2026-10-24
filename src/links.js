@@ -1,12 +1,12 @@
 'use strict';
 
-// Rules for short link names and destinations, modeled on Google's go/ links:
+// Rules for short link names and destinations, for see/ links:
 //  - names are matched case-insensitively and ignore '-' and '_'
-//    (go/Team-Docs, go/teamdocs and go/team_docs are the same link)
+//    (see/Team-Docs, see/teamdocs and see/team_docs are the same link)
 //  - extra path after the name is appended to the destination
-//    (go/docs/setup -> https://docs.example.com/setup)
+//    (see/docs/setup -> https://docs.example.com/setup)
 //  - a destination containing %s gets the extra path substituted instead
-//    (go/bug/123 with https://bugs.example.com/show?id=%s)
+//    (see/bug/123 with https://bugs.example.com/show?id=%s)
 //  - the request's query string is passed through to the destination
 
 const NAME_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/;

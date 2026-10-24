@@ -1,6 +1,6 @@
 # see
 
-A short link server in the style of Google's internal **go/ links**. Type `go/wiki` in your browser and land on your wiki.
+A short link server. Type `see/wiki` in your browser and land on your wiki.
 
 No dependencies: just Node.js 22.13+ with its built-in SQLite.
 
@@ -15,16 +15,16 @@ Open http://localhost:8080 to browse, search and create links.
 
 | You type | You get |
 | --- | --- |
-| `go/gh` | the destination, e.g. `https://github.com` |
-| `go/GH`, `go/g-h`, `go/g_h` | the same link: names ignore case, `-` and `_` |
-| `go/gh/nodejs/node?tab=readme` | extra path and query are appended: `https://github.com/nodejs/node?tab=readme` |
-| `go/bug/123` with destination `https://bugs.example.com/show?id=%s` | `%s` is replaced by the extra path: `…?id=123` |
-| `go/gh+` | the link's detail page: stats, edit form, history |
-| `go/something-new` | a "doesn't exist yet" page to create it, with "did you mean" suggestions |
+| `see/gh` | the destination, e.g. `https://github.com` |
+| `see/GH`, `see/g-h`, `see/g_h` | the same link: names ignore case, `-` and `_` |
+| `see/gh/nodejs/node?tab=readme` | extra path and query are appended: `https://github.com/nodejs/node?tab=readme` |
+| `see/bug/123` with destination `https://bugs.example.com/show?id=%s` | `%s` is replaced by the extra path: `…?id=123` |
+| `see/gh+` | the link's detail page: stats, edit form, history |
+| `see/something-new` | a "doesn't exist yet" page to create it, with "did you mean" suggestions |
 
 Every change is recorded in the link's history, and visits are counted.
 
-To make `go/` work in browsers, point the `go` host name at this server (DNS search domain, `/etc/hosts`, or a reverse proxy) and set `SEE_PREFIX=go/`. You can also add it as a browser search engine with `http://go/%s`.
+To make `see/` work in browsers, point the `see` host name at this server (DNS search domain, `/etc/hosts`, or a reverse proxy). You can also add it as a browser search engine with `http://see/%s`.
 
 ## Configuration
 
@@ -32,7 +32,7 @@ To make `go/` work in browsers, point the `go` host name at this server (DNS sea
 | --- | --- | --- |
 | `PORT` | `80` | Port to listen on (the first command-line argument wins) |
 | `SEE_DB` | `./see.db` | SQLite database file |
-| `SEE_PREFIX` | host name + `/` | Label shown before names, e.g. `go/` |
+| `SEE_PREFIX` | `see/` | Label shown before names |
 | `SEE_USER_HEADER` | unset | Header your auth proxy sets with the signed-in user (e.g. `x-forwarded-email`). Turns on ownership: new links belong to their creator and only the owner can change them. Unset means anyone can edit. |
 | `SEE_ADMINS` | unset | Comma-separated users who can change any link |
 
